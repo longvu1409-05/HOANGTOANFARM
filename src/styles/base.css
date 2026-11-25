@@ -1,0 +1,164 @@
+/**
+ * CSS mặc định (Reset), khung căn giữa (Container) và các class dùng chung.
+ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--htf-bg-page);
+  color: var(--htf-black);
+  font-family: var(--htf-font-sans);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+h1,
+h2,
+h3,
+h4,
+p,
+ul {
+  margin: 0;
+  padding: 0;
+}
+
+ul {
+  list-style: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* Giữ nguyên kích thước gốc của file SVG xuất từ Figma */
+.htf-svg-intrinsic {
+  display: block;
+  max-width: none;
+  flex-shrink: 0;
+}
+
+.htf-line-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.htf-img-cover {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.htf-img-bottom {
+  object-position: bottom;
+}
+
+.htf-img-cropped {
+  position: absolute;
+  max-width: none;
+  display: block;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.htf-flip-x {
+  transform: scaleX(-1);
+}
+
+/* Chữ hiệu ứng nhũ vàng & xanh lá đậm */
+.htf-gold-text {
+  background-image: var(--htf-grad-gold-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.htf-green-grad-text {
+  background-image: var(--htf-grad-green);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.htf-fw-regular {
+  font-weight: 400;
+}
+
+.htf-fw-bold {
+  font-weight: 700;
+}
+
+/* Khung trang 1440px và vùng nội dung 1196px */
+.htf-page {
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  background-color: var(--htf-bg-page);
+  position: relative;
+  overflow-x: clip;
+}
+
+.htf-container {
+  width: 100%;
+  max-width: 1196px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+@media (max-width: 1240px) {
+  .htf-container {
+    padding: 0 20px;
+  }
+}
+
+/* Tiêu đề dùng chung của các Section */
+.htf-section-header {
+  text-align: center;
+}
+
+.htf-section-title {
+  font-family: var(--htf-font-display);
+  font-weight: 700;
+  font-size: 32px;
+  line-height: 1.3;
+  display: inline-block;
+}
+
+.htf-section-subtitle {
+  margin-top: 6px;
+  font-family: var(--htf-font-sans);
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 1.35;
+  color: var(--htf-black);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

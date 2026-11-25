@@ -1,0 +1,228 @@
+/**
+ * CSS riêng cho khu vực Kiến thức lựa chọn (FeaturedArticleCard & KnowledgeArticleCard)
+ */
+.htf-knowledge-section {
+  position: relative;
+  min-height: 621.43px;
+  padding: 36px 0 32px;
+  overflow: hidden;
+}
+
+.htf-knowledge-section__bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.htf-knowledge-section__inner {
+  position: relative;
+  z-index: 2;
+}
+
+.htf-knowledge-grid {
+  margin-top: 27px;
+  display: grid;
+  grid-template-columns: 587px 589px;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.htf-knowledge-featured {
+  position: relative;
+  width: 587px;
+  height: 404px;
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 18.5px 22px 22px;
+}
+
+.htf-knowledge-featured__img-wrap {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.htf-knowledge-featured__gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    #1b371c 0%,
+    #32602e 21.6%,
+    rgba(50, 96, 46, 0) 42%
+  );
+  pointer-events: none;
+}
+
+.htf-knowledge-featured__badge {
+  position: relative;
+  z-index: 2;
+  align-self: flex-start;
+  height: 37.41px;
+  padding: 0 14px 0 10px;
+  border-radius: 20.77px;
+  border: 1px solid var(--htf-gold-border);
+  background-image: var(--htf-grad-green);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--htf-gold-light);
+  font-size: 15px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.htf-knowledge-featured__body {
+  position: relative;
+  z-index: 2;
+}
+
+.htf-knowledge-featured__title {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 24px;
+  color: var(--htf-white);
+}
+
+.htf-knowledge-featured__excerpt {
+  margin-top: 4px;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 21px;
+  color: var(--htf-white);
+}
+
+.htf-btn-read-cream {
+  margin-top: 12px;
+  width: 118px;
+  height: 28px;
+  border-radius: 23.32px;
+  background: var(--htf-cream-soft);
+  color: var(--htf-green-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: transform 0.2s ease;
+}
+
+.htf-btn-read-cream:hover {
+  transform: translateY(-1px);
+}
+
+.htf-knowledge-side {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 17px;
+}
+
+.htf-knowledge-card {
+  width: 589px;
+  height: 193px;
+  background: var(--htf-green-primary);
+  border-radius: 10px;
+  box-shadow: 0px 1px 4px 0.5px rgba(0, 0, 0, 0.1);
+  padding: 10.3px 21px 10.3px 11.5px;
+  display: flex;
+  align-items: stretch;
+  gap: 16.5px;
+}
+
+.htf-knowledge-card__thumb {
+  position: relative;
+  width: 234px;
+  height: 100%;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.htf-knowledge-card__content {
+  flex: 1;
+  padding-top: 6px;
+  display: flex;
+  flex-direction: column;
+}
+
+.htf-knowledge-card__title {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 21px;
+  color: var(--htf-white);
+}
+
+.htf-knowledge-card__excerpt {
+  margin-top: 8px;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 20px;
+  color: var(--htf-white);
+  text-align: justify;
+}
+
+.htf-knowledge-card__content .htf-btn-read-cream {
+  margin-top: auto;
+  margin-bottom: 6px;
+}
+
+.htf-knowledge-more {
+  margin-top: 24px;
+  display: flex;
+  justify-content: center;
+}
+
+.htf-btn-all-knowledge {
+  width: 256.18px;
+  height: 38px;
+  border-radius: 23.32px;
+  border: 1.5px solid var(--htf-gold-cta-border);
+  background-image: var(--htf-grad-gold-fill);
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+  color: var(--htf-green-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 15px;
+  font-weight: 600;
+  text-transform: uppercase;
+  transition: transform 0.2s ease;
+}
+
+.htf-btn-all-knowledge:hover {
+  transform: translateY(-1px);
+}
+
+@media (max-width: 1220px) {
+  .htf-knowledge-grid {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+}
+
+@media (max-width: 680px) {
+  .htf-knowledge-featured,
+  .htf-knowledge-card {
+    width: 100%;
+    height: auto;
+  }
+
+  .htf-knowledge-featured {
+    min-height: 360px;
+  }
+
+  .htf-knowledge-card {
+    flex-direction: column;
+  }
+
+  .htf-knowledge-card__thumb {
+    width: 100%;
+    height: 180px;
+  }
+}

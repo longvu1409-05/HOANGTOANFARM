@@ -1,0 +1,178 @@
+/**
+ * CSS riêng cho khu vực Cam kết & Đánh giá khách hàng
+ */
+.htf-trust-section {
+  position: relative;
+  min-height: 496.92px;
+  padding: 58px 0 72px;
+  overflow: hidden;
+}
+
+.htf-trust-section__bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.htf-trust-section__bg-fade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.48) 28.23%,
+    rgba(255, 255, 255, 0) 65.13%
+  );
+}
+
+.htf-trust-section__inner {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 466px 710.31px;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.htf-commit-panel,
+.htf-reviews-panel {
+  min-height: 366.02px;
+  background-color: var(--htf-panel-sage);
+  border-radius: 10px;
+  box-shadow: 0px 1px 6.4px rgba(0, 0, 0, 0.05);
+}
+
+.htf-commit-panel {
+  padding: 26px 29px 24px;
+}
+
+.htf-reviews-panel {
+  padding: 26px 34px 18px;
+  display: flex;
+  flex-direction: column;
+}
+
+.htf-panel-title {
+  display: block;
+  text-align: center;
+  font-family: var(--htf-font-display);
+  font-weight: 700;
+  font-size: 32px;
+  line-height: 1.2;
+}
+
+.htf-commit-list {
+  margin-top: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 17px;
+}
+
+.htf-commit-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.htf-commit-item__badge {
+  position: relative;
+  width: 48px;
+  height: 47px;
+  flex-shrink: 0;
+}
+
+.htf-commit-item__circle {
+  position: absolute;
+  inset: 0;
+}
+
+.htf-commit-item__icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.htf-commit-item__title {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 22px;
+}
+
+.htf-commit-item__desc {
+  margin-top: 3px;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 20px;
+  color: var(--htf-black);
+}
+
+.htf-reviews-list {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.htf-review-card {
+  min-height: 112px;
+  background: var(--htf-review-bg);
+  border-radius: 10px;
+  filter: drop-shadow(0px 0px 2px rgba(0, 0, 0, 0.11));
+  padding: 11px 20px 10px 17px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.htf-review-card__body {
+  flex: 1;
+}
+
+.htf-review-card__quote {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--htf-black);
+  text-align: justify;
+}
+
+.htf-review-card__stars {
+  margin-top: 10px;
+}
+
+.htf-review-card__author {
+  margin-top: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 18px;
+  color: #a4a4a4;
+}
+
+.htf-review-card__avatar-wrap {
+  width: 92.36px;
+  height: 92.36px;
+  flex-shrink: 0;
+}
+
+.htf-review-card__avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
+.htf-reviews-dots {
+  margin-top: auto;
+  padding-top: 14px;
+  display: flex;
+  justify-content: center;
+}
+
+@media (max-width: 1220px) {
+  .htf-trust-section__inner {
+    grid-template-columns: 1fr;
+    max-width: 720px;
+  }
+}

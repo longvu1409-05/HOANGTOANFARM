@@ -1,0 +1,229 @@
+/**
+ * CSS riêng cho khu vực Sản phẩm tuyển chọn và thẻ ProductCard
+ */
+.htf-products-section {
+  padding: 19px 0 42px;
+}
+
+.htf-products-grid {
+  margin-top: 24px;
+  display: grid;
+  grid-template-columns: repeat(4, 286px);
+  justify-content: space-between;
+  gap: 17px;
+}
+
+.htf-product-card {
+  width: 286px;
+  height: 338px;
+  position: relative;
+}
+
+.htf-product-card__outer {
+  position: absolute;
+  inset: 1px 1.4px 0 1.4px;
+  background: var(--htf-white);
+  border: 2px solid var(--htf-green-dark);
+  border-radius: 12px;
+  box-shadow: 0px 1px 6.5px rgba(0, 0, 0, 0.11);
+}
+
+.htf-product-card__inner {
+  position: absolute;
+  inset: 9.8px 10.6px 8.5px 10.6px;
+  background: var(--htf-white);
+  border: 0.5px solid #809a7f;
+  border-radius: 12px;
+  box-shadow: 0px 1px 6.5px rgba(0, 0, 0, 0.11);
+  padding: 9px 11px 8px;
+  display: flex;
+  flex-direction: column;
+}
+
+.htf-product-card__img-box {
+  position: relative;
+  width: 100%;
+  height: 177px;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.htf-product-card__title {
+  margin-top: 8px;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.18;
+  min-height: 42px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.htf-product-card__specs {
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.htf-product-card__specs li {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.2;
+  color: #0c0c0c;
+}
+
+.htf-product-card__divider {
+  margin-top: 6px;
+  width: 100%;
+}
+
+.htf-product-card__footer {
+  margin-top: auto;
+  padding-top: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.htf-product-card__price-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.htf-product-card__box-badge {
+  width: 27.4px;
+  height: 27.4px;
+  border-radius: 3px;
+  background-image: var(--htf-grad-green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.htf-product-card__price-meta {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.htf-product-card__unit {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--htf-green-price);
+}
+
+.htf-product-card__price {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--htf-green-price);
+}
+
+.htf-product-card__order-btn {
+  height: 31.8px;
+  min-width: 100px;
+  padding: 0 12px;
+  border-radius: 52px;
+  border: none;
+  background-image: var(--htf-grad-green);
+  color: var(--htf-white);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.htf-product-card__order-btn:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+}
+
+.htf-products-more-row {
+  margin-top: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.htf-products-more-row__line {
+  flex: 1;
+  max-width: 450px;
+}
+
+.htf-btn-all-products {
+  width: 256.18px;
+  height: 38px;
+  border-radius: 23.32px;
+  background-image: var(--htf-grad-green);
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px 0 21px;
+  color: var(--htf-white);
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.htf-btn-all-products:hover {
+  transform: translateY(-1px);
+}
+
+.htf-btn-all-products__text {
+  font-size: 15px;
+  font-weight: 600;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.htf-btn-all-products__sep {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 6px;
+}
+
+.htf-btn-all-products__sep img {
+  transform: rotate(90deg);
+}
+
+.htf-btn-all-products__chevron {
+  width: 14px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.htf-btn-all-products__chevron img {
+  transform: rotate(-90deg);
+}
+
+@media (max-width: 1220px) {
+  .htf-products-grid {
+    grid-template-columns: repeat(2, 286px);
+    justify-content: center;
+    gap: 24px;
+  }
+}
+
+@media (max-width: 680px) {
+  .htf-products-grid {
+    grid-template-columns: 286px;
+  }
+}

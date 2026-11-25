@@ -1,0 +1,104 @@
+/**
+ * CSS riêng cho Banner Câu chuyện thương hiệu ("Hành trình làm nông bằng cái tâm")
+ */
+.htf-story-banner {
+  position: relative;
+  height: 374px;
+  width: 100%;
+  overflow: hidden;
+}
+
+.htf-story-banner__bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.htf-story-banner__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to right,
+    #1b371c 3.891%,
+    rgba(27, 55, 28, 0.85) 24%,
+    rgba(50, 96, 46, 0) 48%
+  );
+}
+
+.htf-story-banner__inner {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.htf-story-banner__content {
+  padding-left: 50px;
+  max-width: 470px;
+}
+
+.htf-story-banner__title {
+  font-family: var(--htf-font-display);
+  font-weight: 700;
+  font-size: 36px;
+  line-height: 44px;
+  background-image: var(--htf-grad-story-title);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.htf-story-banner__bullets {
+  margin-top: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.htf-story-banner__bullet {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--htf-white);
+}
+
+.htf-story-banner__bullet-icon {
+  width: 13px;
+  height: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.htf-story-banner__bullet-icon img {
+  transform: rotate(90deg);
+}
+
+.htf-btn-story {
+  margin-top: 22px;
+  width: 308px;
+  height: 38px;
+  border-radius: 23.32px;
+  border: 1.5px solid var(--htf-gold-cta-border);
+  background-image: var(--htf-grad-gold-fill);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 600;
+  text-transform: uppercase;
+  transition: transform 0.2s ease;
+}
+
+.htf-btn-story:hover {
+  transform: translateY(-1px);
+}
+
+@media (max-width: 680px) {
+  .htf-story-banner__content {
+    padding-left: 0;
+  }
+}

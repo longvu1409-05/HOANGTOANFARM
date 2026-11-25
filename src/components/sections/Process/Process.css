@@ -1,0 +1,117 @@
+/**
+ * CSS riêng cho khu vực Vùng trồng & Quy trình và thẻ ProcessCard
+ */
+.htf-process-section {
+  position: relative;
+  min-height: 544.86px;
+  padding: 28px 0 68px;
+  overflow: hidden;
+}
+
+.htf-process-section__bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.htf-process-section__bg-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: bottom center;
+  display: block;
+}
+
+.htf-process-section__bg-glow {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.14) 28%,
+    rgba(255, 255, 255, 0) 64%
+  );
+}
+
+.htf-process-section__inner {
+  position: relative;
+  z-index: 2;
+}
+
+.htf-process-grid {
+  margin-top: 24px;
+  display: grid;
+  grid-template-columns: repeat(4, 283.33px);
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.htf-process-card {
+  width: 283.33px;
+  min-height: 323.2px;
+  background: var(--htf-cream-soft);
+  border-radius: 12px;
+  box-shadow: 0px 1px 6.5px rgba(0, 0, 0, 0.11);
+  padding: 11px 10px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.htf-process-card__img-box {
+  position: relative;
+  width: 100%;
+  height: 190px;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.htf-process-card__title {
+  margin-top: 12px;
+  font-size: 18px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.htf-process-card__desc {
+  margin-top: 6px;
+  width: 100%;
+  font-size: 15.5px;
+  font-weight: 400;
+  line-height: 20px;
+  color: #040404;
+}
+
+.htf-process-card__btn {
+  margin-top: auto;
+  width: 129px;
+  height: 28px;
+  border-radius: 23.32px;
+  border: none;
+  background-image: var(--htf-grad-green);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: transform 0.2s ease;
+}
+
+.htf-process-card__btn:hover {
+  transform: translateY(-1px);
+}
+
+@media (max-width: 1220px) {
+  .htf-process-grid {
+    grid-template-columns: repeat(2, 286px);
+    justify-content: center;
+    gap: 24px;
+  }
+}
+
+@media (max-width: 680px) {
+  .htf-process-grid {
+    grid-template-columns: 286px;
+  }
+}
