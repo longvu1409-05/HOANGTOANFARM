@@ -1,4 +1,5 @@
 import { TRUST_ASSETS } from '../constants/assets';
+import type { ReviewDto } from '../services/contentApi';
 import { CommitmentItem, TestimonialItem } from '../types/farm.types';
 
 /**
@@ -46,5 +47,25 @@ export const TESTIMONIALS: TestimonialItem[] = [
     quote: 'Mua làm quà rất thích, giỏ quà đẹp và sang trọng, sẽ ủng hộ lâu dài',
     author: 'Anh Văn - Hà Nội',
     avatar: TRUST_ASSETS.testimonialAvatar2,
+  },
+];
+
+export const DEFAULT_REVIEW_DTOS: ReviewDto[] = [
+  {
+    id: 1,
+    author: 'Chị Mai - TP Hồ Chí Minh',
+    quote:
+      'Trái cây tươi, ngọt tự nhiên, đóng gói cẩn thận. Gia đình mình rất yên tâm khi mua ở Hoàng Toàn Farm.',
+    rating: 5,
+    avatar_file: 'imgEllipse47.png',
+    created_at: '2026-11-27 08:00:00',
+  },
+  {
+    id: 2,
+    author: 'Anh Văn - Hà Nội',
+    quote: 'Mua làm quà rất thích, giỏ quà đẹp và sang trọng, sẽ ủng hộ lâu dài',
+    rating: 5,
+    avatar_file: 'imgEllipse48.png',
+    created_at: '2026-11-27 08:00:00',
   },
 ];

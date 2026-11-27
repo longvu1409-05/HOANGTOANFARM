@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { contentController } from '../controllers/contentController.js';
+import { contentController } from '../controllers/contentController';
 
 export const contentRoutes = Router();
 

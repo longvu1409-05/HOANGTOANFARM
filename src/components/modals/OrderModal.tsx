@@ -21,7 +21,9 @@ export const OrderModal: React.FC<OrderModalProps> = ({
   onAddToCart,
   onConfirmOrder,
 }) => {
-  const [chosenId, setChosenId] = useState<string>(selectedProduct?.id ?? products[0].id);
+  const [chosenId, setChosenId] = useState<string>(
+    selectedProduct?.id ?? products[0]?.id ?? ''
+  );
   const [quantity, setQuantity] = useState<number>(1);
   const [name, setName] = useState<string>('');
   const [phone, setPhone] = useState<string>('');
@@ -102,7 +104,7 @@ export const OrderModal: React.FC<OrderModalProps> = ({
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="0989.xxx.xxx"
+                placeholder="Ví dụ: 0989604818"
                 className="htf-modal__input"
                 required
               />

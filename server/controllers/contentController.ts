@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import { contentRepo } from '../repositories/contentRepo.js';
-import { sendBadRequest, sendCreated, sendNotFound, sendOk } from '../utils/response.js';
+import { contentRepo } from '../repositories/contentRepo';
+import { sendBadRequest, sendCreated, sendNotFound, sendOk } from '../utils/response';
 
 export const contentController = {
   listReviews(_req: Request, res: Response) {

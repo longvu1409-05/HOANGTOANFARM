@@ -1,32 +1,66 @@
 import fs from 'node:fs';
+import { createRequire } from 'node:module';
 import path from 'node:path';
-import { DatabaseSync } from 'node:sqlite';
-import { ENV } from '../config/env.js';
+import { ENV } from '../config/env';
+import { seedDatabase } from './seed';
 
-let dbInstance: DatabaseSync | null = null;
-
-/**
- * Lấy kết nối SQLite duy nhất (Singleton), tạo bảng và nâng cấp cột nếu cần.
- */
-export function getDatabase(): DatabaseSync {
-  if (dbInstance) {
-    return dbInstance;
-  }
-
-  fs.mkdirSync(path.dirname(ENV.DB_PATH), { recursive: true });
-  const db = new DatabaseSync(ENV.DB_PATH);
-
-  db.exec('PRAGMA journal_mode = WAL;');
-  db.exec('PRAGMA foreign_keys = ON;');
-
-  createSchema(db);
-  migrateSchema(db);
-
-  dbInstance = db;
-  return dbInstance;
+export interface SqliteStatementLike {
+  run: (...params: unknown[]) => { changes: number | bigint; lastInsertRowid: number | bigint };
+  get: (...params: unknown[]) => unknown;
+  all: (...params: unknown[]) => unknown[];
 }
 
-function createSchema(db: DatabaseSync): void {
+export interface SqliteDatabaseLike {
+  exec: (sql: string) => void;
+  prepare: (sql: string) => SqliteStatementLike;
+}
+
+const requireModule = createRequire(import.meta.url);
+
+let dbInstance: SqliteDatabaseLike | null = null;
+let sqliteChecked = false;
+let sqliteUnavailable = false;
+
+/**
+ * Lấy kết nối SQLite duy nhất (tự động nạp dữ liệu gốc khi khởi tạo).
+ * Nếu môi trường Node trên host không có module 'node:sqlite' (ví dụ Node 18/20),
+ * hàm trả về null một cách an toàn để hệ thống tự chuyển sang jsonStore.
+ */
+export function getSqliteDb(): SqliteDatabaseLike | null {
+  if (dbInstance) return dbInstance;
+  if (sqliteChecked && sqliteUnavailable) return null;
+
+  sqliteChecked = true;
+  try {
+    const sqliteMod = requireModule('node:sqlite') as {
+      DatabaseSync: new (dbPath: string) => SqliteDatabaseLike;
+    };
+
+    fs.mkdirSync(path.dirname(ENV.DB_PATH), { recursive: true });
+    const db = new sqliteMod.DatabaseSync(ENV.DB_PATH);
+
+    db.exec(ENV.IS_VERCEL ? 'PRAGMA journal_mode = DELETE;' : 'PRAGMA journal_mode = WAL;');
+    db.exec('PRAGMA foreign_keys = ON;');
+
+    createSchema(db);
+    migrateSchema(db);
+    seedDatabase(db);
+
+    dbInstance = db;
+    return dbInstance;
+  } catch (err) {
+    sqliteUnavailable = true;
+    console.warn('[DB] node:sqlite không khả dụng, sử dụng kho JSON dự phòng:', err);
+    return null;
+  }
+}
+
+/** Giữ tương thích với server/index.ts */
+export function getDatabase(): SqliteDatabaseLike | null {
+  return getSqliteDb();
+}
+
+function createSchema(db: SqliteDatabaseLike): void {
   db.exec(`
     CREATE TABLE IF NOT EXISTS products (
       id TEXT PRIMARY KEY,
@@ -115,10 +149,7 @@ function createSchema(db: DatabaseSync): void {
   `);
 }
 
-/**
- * Bổ sung cột mới an toàn nếu database cũ đã được tạo trước đó
- */
-function migrateSchema(db: DatabaseSync): void {
+function migrateSchema(db: SqliteDatabaseLike): void {
   const ensureColumn = (table: string, col: string, definition: string) => {
     const cols = db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[];
     if (!cols.some((c) => c.name === col)) {

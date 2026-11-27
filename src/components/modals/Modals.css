@@ -9,19 +9,20 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 16px;
 }
 
 .htf-modal {
   position: relative;
   width: 100%;
-  max-width: 490px;
-  max-height: 90vh;
+  max-width: 500px;
+  max-height: 92vh;
   overflow-y: auto;
+  overscroll-behavior: contain;
   background: var(--htf-cream-card);
   border-radius: 14px;
   border: 2px solid var(--htf-green-primary);
-  padding: 26px 24px 24px;
+  padding: 20px 22px 20px;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
 }
 
@@ -30,25 +31,43 @@
 }
 
 .htf-modal__close {
-  position: absolute;
-  top: 12px;
-  right: 14px;
+  position: sticky;
+  top: 0;
+  float: right;
+  margin: -4px -4px 4px 8px;
+  z-index: 10;
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  border: none;
+  border: 1px solid rgba(50, 96, 46, 0.2);
   background: var(--htf-bg-page);
-  font-size: 22px;
+  font-size: 21px;
   line-height: 1;
   color: var(--htf-green-dark);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.htf-modal__close:hover {
+  background: #dce8dd;
+}
+
+.htf-drawer__head .htf-modal__close {
+  position: static;
+  float: none;
+  margin: 0;
+  flex-shrink: 0;
 }
 
 .htf-modal__media {
+  clear: both;
   width: 100%;
-  height: 220px;
+  height: 210px;
   border-radius: 10px;
   overflow: hidden;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .htf-badge-pill {
@@ -65,13 +84,14 @@
 
 .htf-modal__title {
   font-family: var(--htf-font-display);
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 700;
+  line-height: 1.22;
 }
 
 .htf-modal__sub {
-  margin-top: 6px;
-  font-size: 14px;
+  margin-top: 4px;
+  font-size: 13.5px;
   color: #3a4a3b;
 }
 
@@ -83,23 +103,23 @@
 }
 
 .htf-modal__form {
-  margin-top: 14px;
+  margin-top: 10px;
   display: flex;
   flex-direction: column;
-  gap: 11px;
+  gap: 9px;
 }
 
 .htf-modal__label {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  font-size: 13.5px;
+  gap: 4px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--htf-green-dark);
 }
 
 .htf-modal__input {
-  height: 40px;
+  height: 38px;
   border: 1px solid #9ab09a;
   border-radius: 8px;
   padding: 0 12px;

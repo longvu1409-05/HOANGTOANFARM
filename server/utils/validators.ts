@@ -1,7 +1,7 @@
-import { CreateOrderInput, CreateProductInput, OrderStatus } from '../types/backend.types.js';
+import { CreateOrderInput, CreateProductInput, OrderStatus } from '../types/backend.types';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PHONE_REGEX = /^(0|\+84)[0-9\s.-]{8,13}$/;
+const PHONE_CHARS_REGEX = /^[0-9+\s().-]+$/;
 
 export const ALLOWED_ORDER_STATUSES: OrderStatus[] = [
   'pending',
@@ -16,15 +16,21 @@ export function isValidEmail(email: string): boolean {
 }
 
 export function normalizePhone(phone: string): string {
-  return phone.replace(/[\s.-]/g, '').trim();
-}
-
-export function isValidPhone(phone: string): boolean {
-  return PHONE_REGEX.test(phone.trim());
+  return phone.replace(/[\s().-]/g, '').trim();
 }
 
 /**
- * Kiểm tra dữ liệu tạo đơn hàng (hỗ trợ cả 1 sản phẩm cũ lẫn giỏ hàng nhiều sản phẩm)
+ * Chấp nhận số điện thoại có từ 7 đến 15 chữ số (ví dụ: 0989604818, +84989604818 hoặc số test nhanh)
+ */
+export function isValidPhone(phone: string): boolean {
+  const trimmed = phone.trim();
+  if (!trimmed || !PHONE_CHARS_REGEX.test(trimmed)) return false;
+  const digits = trimmed.replace(/\D/g, '');
+  return digits.length >= 7 && digits.length <= 15;
+}
+
+/**
+ * Kiểm tra dữ liệu tạo đơn hàng (hỗ trợ cả 1 sản phẩm lẫn giỏ hàng nhiều sản phẩm)
  */
 export function validateCreateOrder(body: Record<string, unknown>): {
   error?: string;
@@ -67,7 +73,7 @@ export function validateCreateOrder(body: Record<string, unknown>): {
     return { error: 'Họ và tên cần tối thiểu 2 ký tự.' };
   }
   if (!isValidPhone(rawPhone)) {
-    return { error: 'Số điện thoại không hợp lệ (ví dụ: 0989604818).' };
+    return { error: 'Số điện thoại cần từ 7–15 chữ số (ví dụ: 0989604818).' };
   }
 
   return {

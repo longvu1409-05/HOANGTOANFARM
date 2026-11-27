@@ -1,10 +1,10 @@
 import { Request, Response } from 'express';
-import { orderRepo } from '../repositories/orderRepo.js';
-import { productRepo } from '../repositories/productRepo.js';
-import { OrderStatus } from '../types/backend.types.js';
-import { formatVnd, generateOrderCode } from '../utils/formatters.js';
-import { sendBadRequest, sendCreated, sendNotFound, sendOk } from '../utils/response.js';
-import { ALLOWED_ORDER_STATUSES, validateCreateOrder } from '../utils/validators.js';
+import { orderRepo } from '../repositories/orderRepo';
+import { productRepo } from '../repositories/productRepo';
+import { OrderStatus } from '../types/backend.types';
+import { formatVnd, generateOrderCode } from '../utils/formatters';
+import { sendBadRequest, sendCreated, sendNotFound, sendOk } from '../utils/response';
+import { ALLOWED_ORDER_STATUSES, validateCreateOrder } from '../utils/validators';
 
 export const orderController = {
   create(req: Request, res: Response) {

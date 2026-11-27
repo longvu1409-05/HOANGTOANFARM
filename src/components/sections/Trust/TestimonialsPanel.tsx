@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { TRUST_ASSETS } from '../../../constants/assets';
+import { resolveAssetUrl } from '../../../constants/assets/assetPath';
 import { TESTIMONIALS as FALLBACK_TESTIMONIALS } from '../../../data/trustData';
 import { ReviewDto } from '../../../services/contentApi';
 
@@ -23,7 +24,7 @@ export const TestimonialsPanel: React.FC<TestimonialsPanelProps> = ({
           id: r.id,
           author: r.author,
           quote: r.quote,
-          avatar: `./assets/figma/${r.avatar_file}`,
+          avatar: resolveAssetUrl(r.avatar_file),
         }))
       : FALLBACK_TESTIMONIALS;
 

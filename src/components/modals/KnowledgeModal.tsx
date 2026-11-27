@@ -1,4 +1,5 @@
 import React from 'react';
+import { resolveAssetUrl } from '../../constants/assets/assetPath';
 import { KnowledgeArticleDto } from '../../services/contentApi';
 import './Modals.css';
 
@@ -33,7 +34,7 @@ export const KnowledgeModal: React.FC<KnowledgeModalProps> = ({
           <>
             <div className="htf-modal__media">
               <img
-                src={`./assets/figma/${article.image_file}`}
+                src={resolveAssetUrl(article.image_file)}
                 alt={article.title}
                 className="htf-img-cover"
               />
@@ -71,7 +72,7 @@ export const KnowledgeModal: React.FC<KnowledgeModalProps> = ({
                   onClick={() => onSelectArticle(item)}
                 >
                   <img
-                    src={`./assets/figma/${item.image_file}`}
+                    src={resolveAssetUrl(item.image_file)}
                     alt={item.title}
                     className="htf-knowledge-modal-item__img"
                   />

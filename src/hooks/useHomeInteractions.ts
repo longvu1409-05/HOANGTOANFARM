@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
+import { DEFAULT_KNOWLEDGE_DTOS } from '../data/knowledgeData';
 import { PRODUCTS as FALLBACK_PRODUCTS } from '../data/productsData';
+import { DEFAULT_REVIEW_DTOS } from '../data/trustData';
 import { createReview, fetchKnowledgeArticles, fetchReviews, KnowledgeArticleDto, ReviewDto } from '../services/contentApi';
 import { submitContact } from '../services/contactApi';
 import { createOrder, CreateOrderPayload } from '../services/orderApi';
@@ -25,8 +27,9 @@ function loadInitialCart(): CartItem[] {
  */
 export function useHomeInteractions() {
   const [products, setProducts] = useState<ProductItem[]>(FALLBACK_PRODUCTS);
-  const [knowledgeList, setKnowledgeList] = useState<KnowledgeArticleDto[]>([]);
-  const [reviews, setReviews] = useState<ReviewDto[]>([]);
+  const [knowledgeList, setKnowledgeList] =
+    useState<KnowledgeArticleDto[]>(DEFAULT_KNOWLEDGE_DTOS);
+  const [reviews, setReviews] = useState<ReviewDto[]>(DEFAULT_REVIEW_DTOS);
   const [cartItems, setCartItems] = useState<CartItem[]>(loadInitialCart);
 
   // Các modal / drawer đang mở
@@ -60,8 +63,8 @@ export function useHomeInteractions() {
         fetchReviews(),
       ]);
       if (prodList.length > 0) setProducts(prodList);
-      setKnowledgeList(artList);
-      setReviews(revList);
+      if (artList.length > 0) setKnowledgeList(artList);
+      if (revList.length > 0) setReviews(revList);
     } catch {
       // Giữ fallback tĩnh nếu server tạm tắt
     }

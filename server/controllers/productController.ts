@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
-import { productRepo } from '../repositories/productRepo.js';
-import { ProductRecord } from '../types/backend.types.js';
-import { sendBadRequest, sendCreated, sendNotFound, sendOk } from '../utils/response.js';
-import { validateProductInput } from '../utils/validators.js';
+import { productRepo } from '../repositories/productRepo';
+import { ProductRecord } from '../types/backend.types';
+import { sendBadRequest, sendCreated, sendNotFound, sendOk } from '../utils/response';
+import { validateProductInput } from '../utils/validators';
 
 function resolveImageUrl(imageFile: string): string {
   if (imageFile.startsWith('http://') || imageFile.startsWith('https://') || imageFile.startsWith('./') || imageFile.startsWith('/')) {
