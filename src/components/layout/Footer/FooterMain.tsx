@@ -4,7 +4,7 @@ import { FOOTER_ABOUT_LINKS, FOOTER_SUPPORT_LINKS } from '../../../data/footerDa
 import { CroppedImage } from '../../common/CroppedImage';
 
 interface FooterMainProps {
-  onSubscribed: (email: string) => void;
+  onSubscribed: (email: string) => Promise<void>;
 }
 
 /**
@@ -12,12 +12,18 @@ interface FooterMainProps {
  */
 export const FooterMain: React.FC<FooterMainProps> = ({ onSubscribed }) => {
   const [email, setEmail] = useState<string>('');
+  const [submitting, setSubmitting] = useState<boolean>(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim()) return;
-    onSubscribed(email.trim());
-    setEmail('');
+    if (!email.trim() || submitting) return;
+    setSubmitting(true);
+    try {
+      await onSubscribed(email.trim());
+      setEmail('');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (

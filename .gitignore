@@ -7,6 +7,10 @@ dist-ssr/
 *.local
 *.tsbuildinfo
 
+# Local SQLite database files
+server/data/*.sqlite
+server/data/*.sqlite-*
+
 # Logs
 npm-debug.log*
 yarn-debug.log*

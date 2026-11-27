@@ -5,7 +5,7 @@ import './Footer.css';
 
 interface FooterSectionProps {
   onOpenOrderModal: () => void;
-  onSubscribed: (email: string) => void;
+  onSubscribed: (email: string) => Promise<void>;
 }
 
 /**

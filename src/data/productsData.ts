@@ -20,6 +20,7 @@ export const PRODUCTS: ProductItem[] = [
     spec2: 'Ngọt đậm, vỏ mỏng, ít hạt',
     unit: 'Hộp 6 quả',
     price: '1.080.000đ',
+    priceVnd: 1080000,
   },
   {
     id: 'vu-sua-tieu-chuan',
@@ -30,6 +31,7 @@ export const PRODUCTS: ProductItem[] = [
     spec2: 'Ngọt đậm, vỏ mỏng, ít hạt',
     unit: 'Hộp 6 quả',
     price: '720.000đ',
+    priceVnd: 720000,
   },
   {
     id: 'gio-qua-cao-cap',
@@ -46,6 +48,7 @@ export const PRODUCTS: ProductItem[] = [
     spec2: 'Ngọt đậm, vỏ mỏng, ít hạt',
     unit: 'Giỏ quà',
     price: '499.000đ',
+    priceVnd: 499000,
   },
   {
     id: 'combo-gia-dinh',
@@ -62,5 +65,6 @@ export const PRODUCTS: ProductItem[] = [
     spec2: 'Ngọt đậm, vỏ mỏng, ít hạt',
     unit: 'Combo',
     price: '349.000đ',
+    priceVnd: 349000,
   },
 ];

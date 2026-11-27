@@ -1,21 +1,44 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { HEADER_ASSETS } from '../../../constants/assets';
 import { NAV_ITEMS } from '../../../data/navigationData';
+import { fetchProducts } from '../../../services/productApi';
+import { ProductItem } from '../../../types/farm.types';
 
 interface NavbarProps {
   cartCount: number;
   onOpenOrderModal: () => void;
+  onSelectProduct: (product: ProductItem) => void;
 }
 
 /**
- * Thanh điều hướng chính: Logo, Menu trang, Tìm kiếm, Giỏ hàng và Chọn ngôn ngữ
+ * Thanh điều hướng chính: Logo, Menu trang, Tìm kiếm (gọi API), Giỏ hàng và Chọn ngôn ngữ
  */
-export const Navbar: React.FC<NavbarProps> = ({ cartCount, onOpenOrderModal }) => {
+export const Navbar: React.FC<NavbarProps> = ({
+  cartCount,
+  onOpenOrderModal,
+  onSelectProduct,
+}) => {
   const [activeNav, setActiveNav] = useState<string>('home');
   const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
   const [searchOpen, setSearchOpen] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [searchResults, setSearchResults] = useState<ProductItem[]>([]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!searchOpen || !searchQuery.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      fetchProducts(searchQuery)
+        .then(setSearchResults)
+        .catch(() => setSearchResults([]));
+    }, 200);
+
+    return () => window.clearTimeout(timer);
+  }, [searchOpen, searchQuery]);
 
   return (
     <div className="htf-navbar" data-node-id="987:183">
@@ -150,11 +173,40 @@ export const Navbar: React.FC<NavbarProps> = ({ cartCount, onOpenOrderModal }) =
             <button
               type="button"
               className="htf-search-bar__close"
-              onClick={() => setSearchOpen(false)}
+              onClick={() => {
+                setSearchOpen(false);
+                setSearchQuery('');
+              }}
             >
               Đóng
             </button>
           </div>
+
+          {searchQuery.trim() && (
+            <div className="htf-container htf-search-results">
+              {searchResults.length === 0 ? (
+                <p className="htf-search-results__empty">
+                  Không tìm thấy sản phẩm phù hợp với &ldquo;{searchQuery}&rdquo;.
+                </p>
+              ) : (
+                searchResults.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className="htf-search-results__item"
+                    onClick={() => {
+                      setSearchOpen(false);
+                      setSearchQuery('');
+                      onSelectProduct(item);
+                    }}
+                  >
+                    <span>{item.name}</span>
+                    <strong>{item.price}</strong>
+                  </button>
+                ))
+              )}
+            </div>
+          )}
         </div>
       )}
 

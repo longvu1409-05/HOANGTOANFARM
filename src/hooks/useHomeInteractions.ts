@@ -1,11 +1,15 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { PRODUCTS as FALLBACK_PRODUCTS } from '../data/productsData';
+import { createOrder, CreateOrderPayload } from '../services/orderApi';
+import { subscribeNewsletterEmail } from '../services/newsletterApi';
+import { fetchProducts } from '../services/productApi';
 import { ProductItem, ProcessStep, PressVideoItem } from '../types/farm.types';
 
 /**
- * Custom Hook quản lý toàn bộ trạng thái tương tác trên trang chủ
- * (giỏ hàng, mở popup đặt quà, xem chi tiết quy trình/video, hiện thông báo)
+ * Custom Hook quản lý trạng thái tương tác & kết nối API Backend trên trang chủ
  */
 export function useHomeInteractions() {
+  const [products, setProducts] = useState<ProductItem[]>(FALLBACK_PRODUCTS);
   const [cartCount, setCartCount] = useState<number>(0);
   const [orderModalOpen, setOrderModalOpen] = useState<boolean>(false);
   const [selectedProduct, setSelectedProduct] = useState<ProductItem | null>(null);
@@ -13,11 +17,27 @@ export function useHomeInteractions() {
   const [activeVideo, setActiveVideo] = useState<PressVideoItem | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  useEffect(() => {
+    let active = true;
+    fetchProducts()
+      .then((list) => {
+        if (active && list.length > 0) {
+          setProducts(list);
+        }
+      })
+      .catch(() => {
+        // Giữ dữ liệu tĩnh mặc định nếu Backend chưa bật
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const showToast = (msg: string) => {
     setToastMessage(msg);
     window.setTimeout(() => {
       setToastMessage((curr) => (curr === msg ? null : curr));
-    }, 3500);
+    }, 4000);
   };
 
   const openGeneralOrderModal = () => {
@@ -34,11 +54,15 @@ export function useHomeInteractions() {
     setOrderModalOpen(false);
   };
 
-  const confirmOrder = (productName: string, customerName: string) => {
-    setCartCount((count) => count + 1);
+  const confirmOrder = async (payload: CreateOrderPayload) => {
+    const res = await createOrder(payload);
+    setCartCount((count) => count + payload.quantity);
     setOrderModalOpen(false);
     setSelectedProduct(null);
-    showToast(`Cảm ơn ${customerName}! Đã ghi nhận đơn "${productName}".`);
+    showToast(
+      res.message ||
+        `Cảm ơn ${payload.customerName}! Mã đơn ${res.data.order_code} đã được ghi nhận.`
+    );
   };
 
   const closeInfoModal = () => {
@@ -46,11 +70,18 @@ export function useHomeInteractions() {
     setActiveVideo(null);
   };
 
-  const subscribeNewsletter = (email: string) => {
-    showToast(`Đã đăng ký nhận ưu đãi thành công cho ${email}!`);
+  const subscribeNewsletter = async (email: string) => {
+    try {
+      const res = await subscribeNewsletterEmail(email);
+      showToast(res.message || `Đã đăng ký nhận ưu đãi thành công cho ${email}!`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Không thể đăng ký lúc này.';
+      showToast(message);
+    }
   };
 
   return {
+    products,
     cartCount,
     orderModalOpen,
     selectedProduct,

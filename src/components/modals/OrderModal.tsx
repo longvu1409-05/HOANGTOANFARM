@@ -1,33 +1,55 @@
 import React, { useState } from 'react';
-import { PRODUCTS } from '../../data/productsData';
+import { CreateOrderPayload } from '../../services/orderApi';
 import { ProductItem } from '../../types/farm.types';
 import './Modals.css';
 
 interface OrderModalProps {
+  products: ProductItem[];
   selectedProduct: ProductItem | null;
   onClose: () => void;
-  onConfirmOrder: (productName: string, customerName: string, phone: string) => void;
+  onConfirmOrder: (payload: CreateOrderPayload) => Promise<void>;
 }
 
 /**
- * Popup điền thông tin đặt quà nhanh
+ * Popup điền thông tin đặt quà nhanh — gửi trực tiếp lên Backend (/api/orders)
  */
 export const OrderModal: React.FC<OrderModalProps> = ({
+  products,
   selectedProduct,
   onClose,
   onConfirmOrder,
 }) => {
-  const [chosenId, setChosenId] = useState<string>(selectedProduct?.id ?? PRODUCTS[0].id);
+  const [chosenId, setChosenId] = useState<string>(selectedProduct?.id ?? products[0].id);
+  const [quantity, setQuantity] = useState<number>(1);
   const [name, setName] = useState<string>('');
   const [phone, setPhone] = useState<string>('');
   const [note, setNote] = useState<string>('');
+  const [submitting, setSubmitting] = useState<boolean>(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const chosen = PRODUCTS.find((p) => p.id === chosenId) ?? PRODUCTS[0];
+  const chosen = products.find((p) => p.id === chosenId) ?? products[0];
+  const unitPrice = chosen.priceVnd ?? 0;
+  const totalLabel =
+    unitPrice > 0 ? `${(unitPrice * quantity).toLocaleString('vi-VN')}đ` : chosen.price;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !phone.trim()) return;
-    onConfirmOrder(chosen.name, name.trim(), phone.trim());
+    setErrorMsg(null);
+    setSubmitting(true);
+
+    try {
+      await onConfirmOrder({
+        productId: chosen.id,
+        quantity,
+        customerName: name.trim(),
+        customerPhone: phone.trim(),
+        note: note.trim(),
+      });
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : 'Đặt hàng thất bại, vui lòng thử lại.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -49,13 +71,40 @@ export const OrderModal: React.FC<OrderModalProps> = ({
               onChange={(e) => setChosenId(e.target.value)}
               className="htf-modal__input"
             >
-              {PRODUCTS.map((p) => (
+              {products.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name} ({p.unit} – {p.price})
                 </option>
               ))}
             </select>
           </label>
+
+          <div className="htf-modal__row-2">
+            <label className="htf-modal__label">
+              Số lượng
+              <input
+                type="number"
+                min={1}
+                max={50}
+                value={quantity}
+                onChange={(e) => setQuantity(Math.max(1, Math.min(50, Number(e.target.value) || 1)))}
+                className="htf-modal__input"
+                required
+              />
+            </label>
+
+            <label className="htf-modal__label">
+              Số điện thoại liên hệ
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="0989.xxx.xxx"
+                className="htf-modal__input"
+                required
+              />
+            </label>
+          </div>
 
           <label className="htf-modal__label">
             Họ và tên người đặt
@@ -64,18 +113,6 @@ export const OrderModal: React.FC<OrderModalProps> = ({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Ví dụ: Nguyễn Minh Anh"
-              className="htf-modal__input"
-              required
-            />
-          </label>
-
-          <label className="htf-modal__label">
-            Số điện thoại liên hệ
-            <input
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="0989.xxx.xxx"
               className="htf-modal__input"
               required
             />
@@ -92,8 +129,10 @@ export const OrderModal: React.FC<OrderModalProps> = ({
             />
           </label>
 
-          <button type="submit" className="htf-modal__submit">
-            Xác nhận đặt quà ({chosen.price})
+          {errorMsg && <p className="htf-modal__error">{errorMsg}</p>}
+
+          <button type="submit" className="htf-modal__submit" disabled={submitting}>
+            {submitting ? 'Đang gửi đơn...' : `Xác nhận đặt quà (${totalLabel})`}
           </button>
         </form>
       </div>

@@ -108,6 +108,27 @@
   text-transform: uppercase;
 }
 
+.htf-modal__submit:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.htf-modal__row-2 {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 12px;
+}
+
+.htf-modal__error {
+  font-size: 13px;
+  font-weight: 600;
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
 .htf-toast {
   position: fixed;
   bottom: 24px;

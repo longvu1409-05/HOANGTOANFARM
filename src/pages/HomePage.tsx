@@ -16,10 +16,10 @@ import { useHomeInteractions } from '../hooks/useHomeInteractions';
 
 /**
  * Trang chủ Hoàng Toàn Farm — sắp xếp các phân khu theo đúng thứ tự từ trên xuống dưới.
- * Muốn ẩn/hiện hoặc đổi vị trí một phần trên trang chủ, chỉ cần chỉnh tại đây.
  */
 export const HomePage: React.FC = () => {
   const {
+    products,
     cartCount,
     orderModalOpen,
     selectedProduct,
@@ -39,12 +39,19 @@ export const HomePage: React.FC = () => {
   return (
     <div className="htf-page" data-node-id="675:126" data-name="Desktop - 3">
       {/* 1. Đầu trang */}
-      <Header cartCount={cartCount} onOpenOrderModal={openGeneralOrderModal} />
+      <Header
+        cartCount={cartCount}
+        onOpenOrderModal={openGeneralOrderModal}
+        onSelectProduct={openProductOrderModal}
+      />
 
       {/* 2. Nội dung chính theo thứ tự thiết kế */}
       <main>
         <HeroSection onOpenOrderModal={openGeneralOrderModal} />
-        <FeaturedProductsSection onSelectProduct={openProductOrderModal} />
+        <FeaturedProductsSection
+          products={products}
+          onSelectProduct={openProductOrderModal}
+        />
         <BrandStoryBanner />
         <GrowingProcessSection onSelectStep={setActiveStep} />
         <CommitmentsTestimonialsSection />
@@ -62,6 +69,7 @@ export const HomePage: React.FC = () => {
       {/* 4. Các hộp thoại Popup & Thông báo */}
       {orderModalOpen && (
         <OrderModal
+          products={products}
           selectedProduct={selectedProduct}
           onClose={closeOrderModal}
           onConfirmOrder={confirmOrder}

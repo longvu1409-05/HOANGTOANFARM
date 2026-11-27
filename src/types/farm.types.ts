@@ -30,6 +30,7 @@ export interface ProductItem {
   spec2: string;
   unit: string;
   price: string;
+  priceVnd?: number;
 }
 
 /** Bước trong mục Vùng trồng & Quy trình */

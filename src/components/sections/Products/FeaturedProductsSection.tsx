@@ -1,12 +1,12 @@
 import React from 'react';
 import { PRODUCT_ASSETS } from '../../../constants/assets';
-import { PRODUCTS } from '../../../data/productsData';
 import { ProductItem } from '../../../types/farm.types';
 import { SectionHeader } from '../../common/SectionHeader';
 import { ProductCard } from './ProductCard';
 import './Products.css';
 
 interface FeaturedProductsSectionProps {
+  products: ProductItem[];
   onSelectProduct: (product: ProductItem) => void;
 }
 
@@ -14,6 +14,7 @@ interface FeaturedProductsSectionProps {
  * Khu vực "Sản phẩm tuyển chọn": hiển thị lưới 4 sản phẩm chủ lực & nút Xem toàn bộ
  */
 export const FeaturedProductsSection: React.FC<FeaturedProductsSectionProps> = ({
+  products,
   onSelectProduct,
 }) => {
   return (
@@ -27,7 +28,7 @@ export const FeaturedProductsSection: React.FC<FeaturedProductsSectionProps> = (
         />
 
         <div className="htf-products-grid" data-node-id="874:257">
-          {PRODUCTS.map((product) => (
+          {products.map((product) => (
             <ProductCard key={product.id} product={product} onSelect={onSelectProduct} />
           ))}
         </div>
