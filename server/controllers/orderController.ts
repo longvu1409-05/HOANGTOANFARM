@@ -1,11 +1,15 @@
 import { Request, Response } from 'express';
 import { orderRepo } from '../repositories/orderRepo.js';
 import { productRepo } from '../repositories/productRepo.js';
+import {
+  sendOrderCreatedEmail,
+  sendOrderStatusEmail,
+} from '../services/emailService.js';
 import { OrderStatus } from '../types/backend.types.js';
+import { extractBearerToken, verifyAdminToken } from '../utils/adminAuth.js';
 import { formatVnd, generateOrderCode } from '../utils/formatters.js';
 import { sendBadRequest, sendCreated, sendNotFound, sendOk } from '../utils/response.js';
 import { ALLOWED_ORDER_STATUSES, validateCreateOrder } from '../utils/validators.js';
-import { extractBearerToken, verifyAdminToken } from '../utils/adminAuth.js';
 
 export const orderController = {
   async create(req: Request, res: Response) {
@@ -47,17 +51,24 @@ export const orderController = {
         totalPriceVnd,
         customerName: value.customerName,
         customerPhone: value.customerPhone,
+        customerEmail: value.customerEmail ?? '',
         address: value.address ?? '',
         note: value.note ?? '',
       });
+
+      const emailResult = await sendOrderCreatedEmail(order);
+      const emailNotice = emailResult.sent
+        ? ` Đã gửi mã đơn tới ${order.customer_email}.`
+        : '';
 
       return sendCreated(
         res,
         {
           ...order,
           totalPriceLabel: formatVnd(order.total_price_vnd),
+          emailSent: emailResult.sent,
         },
-        `Đặt quà thành công! Mã đơn của bạn là ${order.order_code}.`
+        `Đặt quà thành công! Mã đơn của bạn là ${order.order_code}.${emailNotice}`
       );
     } catch (err) {
       return sendBadRequest(
@@ -73,7 +84,6 @@ export const orderController = {
     const status = typeof req.query.status === 'string' ? req.query.status.trim() : undefined;
 
     const isAdmin = Boolean(verifyAdminToken(extractBearerToken(req)));
-    // Khách vãng lai chỉ được tra cứu đơn của mình khi truyền SĐT hoặc Mã đơn hàng
     if (!isAdmin && !phone && !code) {
       return res.status(401).json({
         success: false,
@@ -114,6 +124,18 @@ export const orderController = {
     }
 
     const updated = await orderRepo.updateStatus(id, status);
-    return sendOk(res, updated, `Đã cập nhật trạng thái đơn ${existing.order_code}.`);
+    let emailSent = false;
+    if (updated && existing.status !== status && updated.customer_email) {
+      const emailResult = await sendOrderStatusEmail(updated);
+      emailSent = emailResult.sent;
+    }
+
+    return sendOk(
+      res,
+      { ...updated, emailSent },
+      emailSent
+        ? `Đã cập nhật trạng thái đơn ${existing.order_code} & gửi email báo cho khách!`
+        : `Đã cập nhật trạng thái đơn ${existing.order_code}.`
+    );
   },
 };

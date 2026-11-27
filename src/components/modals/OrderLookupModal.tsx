@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { fetchOrders, OrderDto, OrderStatus } from '../../services/orderApi';
 import './Modals.css';
 
@@ -15,17 +15,19 @@ const STATUS_BADGES: Record<OrderStatus, string> = {
 };
 
 /**
- * Popup tra cứu đơn hàng theo Số điện thoại hoặc Mã đơn hàng (HTF-...)
+ * Popup tra cứu đơn hàng theo Số điện thoại hoặc Mã đơn hàng (tự động tra cứu khi mở từ link Email ?lookup=HTF-...)
  */
 export const OrderLookupModal: React.FC<OrderLookupModalProps> = ({ onClose }) => {
-  const [keyword, setKeyword] = useState('');
+  const initialLookup =
+    new URLSearchParams(window.location.search).get('lookup')?.trim() ?? '';
+
+  const [keyword, setKeyword] = useState(initialLookup);
   const [orders, setOrders] = useState<OrderDto[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const q = keyword.trim();
+  const runLookup = useCallback(async (rawQuery: string) => {
+    const q = rawQuery.trim();
     if (!q) return;
     setLoading(true);
     setErrorMsg(null);
@@ -38,6 +40,17 @@ export const OrderLookupModal: React.FC<OrderLookupModalProps> = ({ onClose }) =
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    if (initialLookup) {
+      runLookup(initialLookup);
+    }
+  }, [initialLookup, runLookup]);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    runLookup(keyword);
   };
 
   return (
@@ -48,7 +61,7 @@ export const OrderLookupModal: React.FC<OrderLookupModalProps> = ({ onClose }) =
         </button>
         <h3 className="htf-modal__title htf-green-grad-text">Tra cứu đơn hàng</h3>
         <p className="htf-modal__sub">
-          Nhập số điện thoại đặt hàng hoặc mã đơn (ví dụ: HTF-20261127-...) để kiểm tra tiến độ.
+          Nhập số điện thoại đặt hàng hoặc mã đơn nhận qua Email (ví dụ: HTF-20261127-...) để kiểm tra tiến độ.
         </p>
 
         <form className="htf-lookup-form" onSubmit={handleSearch}>

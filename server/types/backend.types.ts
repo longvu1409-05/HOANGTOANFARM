@@ -46,6 +46,7 @@ export interface CreateOrderInput {
   items: OrderItemInput[];
   customerName: string;
   customerPhone: string;
+  customerEmail?: string;
   address?: string;
   note?: string;
 }
@@ -70,6 +71,7 @@ export interface OrderRecord {
   total_price_vnd: number;
   customer_name: string;
   customer_phone: string;
+  customer_email: string;
   address: string;
   note: string;
   status: OrderStatus;

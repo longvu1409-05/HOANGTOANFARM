@@ -11,6 +11,7 @@ export interface CreateOrderPayload {
   items: OrderLinePayload[];
   customerName: string;
   customerPhone: string;
+  customerEmail?: string;
   address?: string;
   note?: string;
 }
@@ -34,8 +35,10 @@ export interface OrderDto {
   quantity: number;
   total_price_vnd: number;
   totalPriceLabel?: string;
+  emailSent?: boolean;
   customer_name: string;
   customer_phone: string;
+  customer_email: string;
   address: string;
   note: string;
   status: OrderStatus;

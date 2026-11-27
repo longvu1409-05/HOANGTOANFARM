@@ -108,8 +108,8 @@ export const AdminDashboard: React.FC = () => {
   }, [session, loadAll]);
 
   const handleOrderStatus = async (orderId: number, status: OrderStatus) => {
-    await updateOrderStatus(orderId, status);
-    showNotice('Đã cập nhật trạng thái đơn hàng.');
+    const res = await updateOrderStatus(orderId, status);
+    showNotice(res.message || 'Đã cập nhật trạng thái đơn hàng.');
     await loadAll();
   };
 

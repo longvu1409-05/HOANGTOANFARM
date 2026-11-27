@@ -12,7 +12,7 @@ interface OrderModalProps {
 }
 
 /**
- * Popup điền thông tin đặt quà nhanh — có thể Đặt ngay hoặc Thêm vào giỏ hàng
+ * Popup điền thông tin đặt quà nhanh — hỗ trợ nhập Email để nhận mã đơn & thông báo giao hàng
  */
 export const OrderModal: React.FC<OrderModalProps> = ({
   products,
@@ -27,18 +27,20 @@ export const OrderModal: React.FC<OrderModalProps> = ({
   const [quantity, setQuantity] = useState<number>(1);
   const [name, setName] = useState<string>('');
   const [phone, setPhone] = useState<string>('');
+  const [email, setEmail] = useState<string>('');
   const [address, setAddress] = useState<string>('');
   const [note, setNote] = useState<string>('');
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const chosen = products.find((p) => p.id === chosenId) ?? products[0];
-  const unitPrice = chosen.priceVnd ?? 0;
+  const unitPrice = chosen?.priceVnd ?? 0;
   const totalLabel =
-    unitPrice > 0 ? `${(unitPrice * quantity).toLocaleString('vi-VN')}đ` : chosen.price;
+    unitPrice > 0 ? `${(unitPrice * quantity).toLocaleString('vi-VN')}đ` : chosen?.price ?? '';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!chosen) return;
     setErrorMsg(null);
     setSubmitting(true);
 
@@ -47,6 +49,7 @@ export const OrderModal: React.FC<OrderModalProps> = ({
         items: [{ productId: chosen.id, quantity }],
         customerName: name.trim(),
         customerPhone: phone.trim(),
+        customerEmail: email.trim(),
         address: address.trim(),
         note: note.trim(),
       });
@@ -65,7 +68,7 @@ export const OrderModal: React.FC<OrderModalProps> = ({
         </button>
         <h3 className="htf-modal__title htf-green-grad-text">Đặt quà trái cây tươi</h3>
         <p className="htf-modal__sub">
-          Tuyển chọn trực tiếp từ vườn Hoàng Toàn Farm – kiểm tra hàng trước khi nhận.
+          Tuyển chọn trực tiếp từ vườn Hoàng Toàn Farm – nhận mã tra cứu đơn qua Email.
         </p>
 
         <form className="htf-modal__form" onSubmit={handleSubmit}>
@@ -92,14 +95,16 @@ export const OrderModal: React.FC<OrderModalProps> = ({
                 min={1}
                 max={50}
                 value={quantity}
-                onChange={(e) => setQuantity(Math.max(1, Math.min(50, Number(e.target.value) || 1)))}
+                onChange={(e) =>
+                  setQuantity(Math.max(1, Math.min(50, Number(e.target.value) || 1)))
+                }
                 className="htf-modal__input"
                 required
               />
             </label>
 
             <label className="htf-modal__label">
-              Số điện thoại liên hệ
+              Số điện thoại liên hệ *
               <input
                 type="tel"
                 value={phone}
@@ -111,17 +116,30 @@ export const OrderModal: React.FC<OrderModalProps> = ({
             </label>
           </div>
 
-          <label className="htf-modal__label">
-            Họ và tên người đặt
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Ví dụ: Nguyễn Minh Anh"
-              className="htf-modal__input"
-              required
-            />
-          </label>
+          <div className="htf-modal__row-2-eq">
+            <label className="htf-modal__label">
+              Họ và tên người đặt *
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Nguyễn Minh Anh"
+                className="htf-modal__input"
+                required
+              />
+            </label>
+
+            <label className="htf-modal__label">
+              Email nhận mã đơn
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="ban@gmail.com"
+                className="htf-modal__input"
+              />
+            </label>
+          </div>
 
           <label className="htf-modal__label">
             Địa chỉ nhận hàng
@@ -152,7 +170,7 @@ export const OrderModal: React.FC<OrderModalProps> = ({
               type="button"
               className="htf-modal__btn-outline"
               onClick={() => {
-                onAddToCart(chosen, quantity);
+                if (chosen) onAddToCart(chosen, quantity);
                 onClose();
               }}
             >

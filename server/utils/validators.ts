@@ -38,6 +38,7 @@ export function validateCreateOrder(body: Record<string, unknown>): {
 } {
   const customerName = String(body.customerName ?? '').trim();
   const rawPhone = String(body.customerPhone ?? '').trim();
+  const customerEmail = String(body.customerEmail ?? '').trim().toLowerCase();
   const address = String(body.address ?? '').trim();
   const note = String(body.note ?? '').trim();
 
@@ -75,12 +76,16 @@ export function validateCreateOrder(body: Record<string, unknown>): {
   if (!isValidPhone(rawPhone)) {
     return { error: 'Số điện thoại cần từ 7–15 chữ số (ví dụ: 0989604818).' };
   }
+  if (customerEmail && !isValidEmail(customerEmail)) {
+    return { error: 'Địa chỉ email nhận mã đơn không đúng định dạng.' };
+  }
 
   return {
     value: {
       items,
       customerName,
       customerPhone: normalizePhone(rawPhone),
+      customerEmail,
       address,
       note,
     },

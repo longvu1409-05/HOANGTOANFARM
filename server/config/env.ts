@@ -42,10 +42,13 @@ for (const [k, v] of Object.entries(initialLocalEnv)) {
 
 const isVercel = Boolean(process.env.VERCEL);
 
-export function getSupabaseEnv() {
+function makeEnvPicker() {
   const fileEnv = isVercel ? {} : loadLocalEnvFiles();
-  const pick = (key: string) => (process.env[key] || fileEnv[key] || '').trim();
+  return (key: string) => (process.env[key] || fileEnv[key] || '').trim();
+}
 
+export function getSupabaseEnv() {
+  const pick = makeEnvPicker();
   const url =
     pick('SUPABASE_URL') || pick('NEXT_PUBLIC_SUPABASE_URL') || pick('VITE_SUPABASE_URL');
   const key =
@@ -58,18 +61,44 @@ export function getSupabaseEnv() {
   return { url, key };
 }
 
-/**
- * Đọc tài khoản Quản trị viên (có thể đổi bất cứ lúc nào qua ADMIN_USERNAME / ADMIN_PASSWORD trong .env hoặc Vercel)
- */
 export function getAdminCredentials() {
-  const fileEnv = isVercel ? {} : loadLocalEnvFiles();
-  const pick = (key: string) => (process.env[key] || fileEnv[key] || '').trim();
+  const pick = makeEnvPicker();
   const { key: supaKey } = getSupabaseEnv();
 
   return {
     username: pick('ADMIN_USERNAME') || 'admin',
     password: pick('ADMIN_PASSWORD') || 'hoangtoan2026',
     signingSecret: pick('ADMIN_JWT_SECRET') || `${supaKey || 'htf-fallback'}::htf-admin-v1`,
+  };
+}
+
+/**
+ * Cấu hình gửi Email thông báo đơn hàng (ưu tiên Gmail SMTP App Password hoặc Resend API)
+ */
+export function getEmailEnv() {
+  const pick = makeEnvPicker();
+  const smtpUser = pick('SMTP_USER');
+  // Tự động bỏ khoảng trắng nếu người dùng copy Mật khẩu ứng dụng 16 ký tự từ Google
+  const smtpPass = pick('SMTP_PASS').replace(/\s+/g, '');
+  const smtpHost = pick('SMTP_HOST') || 'smtp.gmail.com';
+  const smtpPort = Number(pick('SMTP_PORT') || 465);
+  const resendApiKey = pick('RESEND_API_KEY');
+  const fromEmail =
+    pick('EMAIL_FROM') ||
+    (smtpUser ? `"Hoàng Toàn Farm" <${smtpUser}>` : 'Hoàng Toàn Farm <onboarding@resend.dev>');
+  const siteUrl = (pick('PUBLIC_SITE_URL') || 'https://hoangtoanfarmweb.vercel.app').replace(
+    /\/+$/,
+    ''
+  );
+
+  return {
+    smtpHost,
+    smtpPort,
+    smtpUser,
+    smtpPass,
+    resendApiKey,
+    fromEmail,
+    siteUrl,
   };
 }
 

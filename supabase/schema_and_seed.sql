@@ -37,6 +37,7 @@ create table if not exists public.orders (
   total_price_vnd bigint not null,
   customer_name text not null,
   customer_phone text not null,
+  customer_email text not null default '',
   address text not null default '',
   note text not null default '',
   status text not null default 'pending'

@@ -85,6 +85,9 @@ export const AdminOrdersTab: React.FC<AdminOrdersTabProps> = ({
                   <td>
                     <div>{order.customer_name}</div>
                     <small>{order.customer_phone}</small>
+                    {order.customer_email && (
+                      <div className="htf-admin__note">✉️ {order.customer_email}</div>
+                    )}
                     {order.address && <div className="htf-admin__note">ĐC: {order.address}</div>}
                     {order.note && <div className="htf-admin__note">Ghi chú: {order.note}</div>}
                   </td>

@@ -15,6 +15,7 @@ interface InsertOrderParams {
   totalPriceVnd: number;
   customerName: string;
   customerPhone: string;
+  customerEmail: string;
   address: string;
   note: string;
 }
@@ -43,6 +44,7 @@ function toOrder(row: Record<string, unknown>): OrderRecord {
     total_price_vnd: Number(row.total_price_vnd),
     customer_name: String(row.customer_name),
     customer_phone: String(row.customer_phone),
+    customer_email: String(row.customer_email ?? ''),
     address: String(row.address ?? ''),
     note: String(row.note ?? ''),
     status: String(row.status ?? 'pending') as OrderStatus,
@@ -88,6 +90,7 @@ export const orderRepo = {
         total_price_vnd: params.totalPriceVnd,
         customer_name: params.customerName,
         customer_phone: params.customerPhone,
+        customer_email: params.customerEmail,
         address: params.address,
         note: params.note,
         status: 'pending',

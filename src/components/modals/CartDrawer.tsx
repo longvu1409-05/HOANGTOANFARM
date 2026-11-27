@@ -13,7 +13,7 @@ interface CartDrawerProps {
 }
 
 /**
- * Ngăn kéo Giỏ hàng trượt từ cạnh phải: chỉnh số lượng, xóa món, đặt hàng nhiều sản phẩm cùng lúc
+ * Ngăn kéo Giỏ hàng trượt từ cạnh phải: chỉnh số lượng, nhập email nhận mã vận đơn, đặt nhiều món
  */
 export const CartDrawer: React.FC<CartDrawerProps> = ({
   items,
@@ -25,6 +25,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 }) => {
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
   const [address, setAddress] = useState('');
   const [note, setNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -46,6 +47,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
         items: items.map((i) => ({ productId: i.product.id, quantity: i.quantity })),
         customerName: customerName.trim(),
         customerPhone: customerPhone.trim(),
+        customerEmail: customerEmail.trim(),
         address: address.trim(),
         note: note.trim(),
       });
@@ -132,7 +134,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
             <form className="htf-modal__form" onSubmit={handleSubmit}>
               <label className="htf-modal__label">
-                Họ và tên người nhận
+                Họ và tên người nhận *
                 <input
                   type="text"
                   value={customerName}
@@ -144,14 +146,25 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               </label>
 
               <label className="htf-modal__label">
-                Số điện thoại liên hệ
+                Số điện thoại liên hệ *
                 <input
                   type="tel"
                   value={customerPhone}
                   onChange={(e) => setCustomerPhone(e.target.value)}
-                  placeholder="0989.xxx.xxx"
+                  placeholder="Ví dụ: 0989604818"
                   className="htf-modal__input"
                   required
+                />
+              </label>
+
+              <label className="htf-modal__label">
+                Email nhận mã đơn &amp; thông báo giao hàng
+                <input
+                  type="email"
+                  value={customerEmail}
+                  onChange={(e) => setCustomerEmail(e.target.value)}
+                  placeholder="ban@gmail.com"
+                  className="htf-modal__input"
                 />
               </label>
 

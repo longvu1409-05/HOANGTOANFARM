@@ -35,7 +35,9 @@ export function useHomeInteractions() {
   // Các modal / drawer đang mở
   const [cartOpen, setCartOpen] = useState<boolean>(false);
   const [orderModalOpen, setOrderModalOpen] = useState<boolean>(false);
-  const [orderLookupOpen, setOrderLookupOpen] = useState<boolean>(false);
+  const [orderLookupOpen, setOrderLookupOpen] = useState<boolean>(() =>
+    Boolean(new URLSearchParams(window.location.search).get('lookup'))
+  );
   const [contactModalOpen, setContactModalOpen] = useState<boolean>(false);
   const [reviewModalOpen, setReviewModalOpen] = useState<boolean>(false);
   const [storyModalOpen, setStoryModalOpen] = useState<boolean>(false);
