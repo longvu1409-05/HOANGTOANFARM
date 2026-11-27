@@ -13,8 +13,6 @@ export interface NavItem {
   id: string;
   label: string;
   href: string;
-  hasDropdown?: boolean;
-  dropdownItems?: string[];
 }
 
 export interface ProductItem {

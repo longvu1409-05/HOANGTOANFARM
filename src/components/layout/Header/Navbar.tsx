@@ -19,7 +19,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   onSelectProduct,
 }) => {
   const [activeNav, setActiveNav] = useState<string>('home');
-  const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
   const [searchOpen, setSearchOpen] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [searchResults, setSearchResults] = useState<ProductItem[]>([]);
@@ -61,12 +60,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {NAV_ITEMS.map((item) => {
               const isActive = activeNav === item.id;
               return (
-                <li
-                  key={item.id}
-                  className="htf-navbar__item"
-                  onMouseEnter={() => item.hasDropdown && setDropdownOpen(true)}
-                  onMouseLeave={() => item.hasDropdown && setDropdownOpen(false)}
-                >
+                <li key={item.id} className="htf-navbar__item">
                   <a
                     href={item.href}
                     className={`htf-navbar__link ${isActive ? 'is-active' : ''}`}
@@ -76,39 +70,12 @@ export const Navbar: React.FC<NavbarProps> = ({
                       {item.label}
                     </span>
 
-                    {item.hasDropdown && (
-                      <img
-                        src={HEADER_ASSETS.navDropdownArrow}
-                        alt=""
-                        className="htf-svg-intrinsic"
-                      />
-                    )}
-
                     {isActive && (
                       <span className="htf-navbar__active-line" data-node-id="675:142">
                         <img src={HEADER_ASSETS.navActiveLine} alt="" className="htf-line-svg" />
                       </span>
                     )}
                   </a>
-
-                  {item.hasDropdown && dropdownOpen && (
-                    <ul className="htf-dropdown">
-                      {item.dropdownItems?.map((sub) => (
-                        <li key={sub}>
-                          <a
-                            href={item.href}
-                            className="htf-dropdown__link"
-                            onClick={() => {
-                              setActiveNav(item.id);
-                              setDropdownOpen(false);
-                            }}
-                          >
-                            {sub}
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
                 </li>
               );
             })}
