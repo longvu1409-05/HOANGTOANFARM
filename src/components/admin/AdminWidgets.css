@@ -269,25 +269,15 @@
   gap: 6px;
 }
 
-.htf-adm-date-pill {
-  padding: 6px 12px;
+.htf-adm-date-input {
+  padding: 5px 10px;
   border-radius: 8px;
-  background: #f5f6fa;
-  color: #7e8299;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #3f4254;
+  font-family: inherit;
   font-size: 12px;
-  font-weight: 500;
-}
-
-.htf-adm-cal-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  background: #4466f2;
-  color: #ffffff;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
+  font-weight: 600;
 }
 
 .htf-adm-chart-legend {
@@ -349,12 +339,24 @@
   position: relative;
 }
 
+.htf-adm-bar-col__val {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #4466f2;
+  margin-bottom: 4px;
+  white-space: nowrap;
+}
+
 .htf-adm-bar-col__stick {
-  width: 7px;
+  width: 10px;
   border-radius: 999px;
   background: linear-gradient(180deg, #4466f2 0%, #7d97ff 100%);
   transition: height 0.3s ease, transform 0.15s ease;
   cursor: pointer;
+}
+
+.htf-adm-bar-col__stick.is-zero {
+  background: #e2e8f0;
 }
 
 .htf-adm-bar-col:hover .htf-adm-bar-col__stick {

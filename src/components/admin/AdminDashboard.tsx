@@ -140,18 +140,32 @@ export const AdminDashboard: React.FC = () => {
   const derivedStats = useMemo(() => {
     const categoriesCount = new Set(products.map((p) => p.category || 'Trái cây tươi')).size || 3;
     const totalStockUnits = products.reduce((sum, p) => sum + (p.stock ?? 0), 0);
+    const inStockProductsCount = products.filter((p) => (p.stock ?? 0) > 0).length;
+
+    const validOrders = orders.filter((o) => o.status !== 'cancelled');
+    const confirmedRevenueVnd = validOrders
+      .filter((o) => o.status !== 'pending')
+      .reduce((sum, o) => sum + o.total_price_vnd, 0);
+    const totalSoldUnits = validOrders.reduce((sum, o) => sum + o.quantity, 0);
+
     const unreadContacts = contacts.filter((c) => c.status === 'new').length;
-    const uniquePhones = new Set(orders.map((o) => o.customer_phone)).size;
-    const totalCustomersReach = uniquePhones + subscribers.length + contacts.length + reviews.length;
+    const repliedContactsCount = contacts.filter((c) => c.status === 'replied').length;
+    const uniqueOrderCustomers = new Set(
+      validOrders.map((o) => o.customer_phone || o.customer_email || String(o.id))
+    ).size;
 
     return {
       categoriesCount,
       totalStockUnits,
+      inStockProductsCount,
+      confirmedRevenueVnd,
+      totalSoldUnits,
       unreadContacts,
-      totalCustomersReach,
+      repliedContactsCount,
+      uniqueOrderCustomers,
       unreadNotifications: summary.pendingOrders + unreadContacts,
     };
-  }, [products, contacts, orders, subscribers, reviews, summary.pendingOrders]);
+  }, [products, contacts, orders, summary.pendingOrders]);
 
   if (authChecking) {
     return (
@@ -239,14 +253,20 @@ export const AdminDashboard: React.FC = () => {
         {errorMsg && <div className="htf-admin__error">{errorMsg}</div>}
         {notice && <div className="htf-admin__notice">{notice}</div>}
 
-        {/* 4 thẻ KPI luôn hiển thị nổi bật */}
+        {/* 4 thẻ KPI thực tế từ Supabase */}
         <AdminKpiCards
           totalRevenueVnd={summary.totalRevenueVnd}
+          confirmedRevenueVnd={derivedStats.confirmedRevenueVnd}
           totalOrders={summary.totalOrders}
           pendingOrders={summary.pendingOrders}
           productsCount={products.length}
+          inStockProductsCount={derivedStats.inStockProductsCount}
           totalStockUnits={derivedStats.totalStockUnits}
-          totalCustomersReach={derivedStats.totalCustomersReach}
+          totalSoldUnits={derivedStats.totalSoldUnits}
+          uniqueOrderCustomers={derivedStats.uniqueOrderCustomers}
+          contactsCount={contacts.length}
+          repliedContactsCount={derivedStats.repliedContactsCount}
+          subscribersCount={subscribers.length}
         />
 
         {loading && orders.length === 0 && products.length === 0 ? (

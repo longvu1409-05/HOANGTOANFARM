@@ -1,9 +1,13 @@
 import React, { useMemo, useState } from 'react';
 import { OrderDto, OrderStatus } from '../../services/orderApi';
 import { ProductItem } from '../../types/farm.types';
+import {
+  buildRealProductBreakdown,
+  buildRealSalesChart,
+  ChartRange,
+  formatCompactVnd,
+} from './adminAnalytics';
 import { AdminViewId } from './AdminSidebar';
-
-type ChartRange = 'hours' | 'day' | 'week' | 'month';
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
   pending: 'Chờ xác nhận',
@@ -13,6 +17,18 @@ const STATUS_LABELS: Record<OrderStatus, string> = {
   cancelled: 'Đã hủy',
 };
 
+function getDefaultDates() {
+  const now = new Date();
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const y = now.getFullYear();
+  const m = pad(now.getMonth() + 1);
+  const d = pad(now.getDate());
+  return {
+    firstOfMonth: `${y}-${m}-01`,
+    today: `${y}-${m}-${d}`,
+  };
+}
+
 interface AdminOverviewTabProps {
   orders: OrderDto[];
   products: ProductItem[];
@@ -21,7 +37,7 @@ interface AdminOverviewTabProps {
 }
 
 /**
- * Trang Dashboard Tổng quan (Sales Overview Bar Chart + Sales By Category + Đơn hàng mới nhất)
+ * Trang Dashboard Tổng quan — Biểu diễn 100% số liệu thật từ bảng orders & products trên Supabase
  */
 export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({
   orders,
@@ -29,98 +45,40 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({
   onUpdateStatus,
   onSelectView,
 }) => {
-  const [range, setRange] = useState<ChartRange>('month');
+  const defaults = useMemo(getDefaultDates, []);
+  const [range, setRange] = useState<ChartRange>('day');
+  const [fromDate, setFromDate] = useState<string>(defaults.firstOfMonth);
+  const [toDate, setToDate] = useState<string>(defaults.today);
+  const [breakdownMode, setBreakdownMode] = useState<'product' | 'category'>('product');
 
-  // Tính dữ liệu biểu đồ cột dựa theo khung thời gian + doanh thu thực tế trên Supabase
-  const chartBars = useMemo(() => {
-    const validOrders = orders.filter((o) => o.status !== 'cancelled');
-    const liveTotal = validOrders.reduce((s, o) => s + o.total_price_vnd, 0);
-    const boost = liveTotal > 0 ? Math.min(25, Math.round(liveTotal / 200000)) : 8;
+  const chartData = useMemo(
+    () => buildRealSalesChart({ orders, range, fromDate, toDate }),
+    [orders, range, fromDate, toDate]
+  );
 
-    const presets: Record<ChartRange, { label: string; heightPct: number; val: string }[]> = {
-      hours: [
-        { label: '08h', heightPct: 34, val: '1.2tr' },
-        { label: '10h', heightPct: 58, val: '2.4tr' },
-        { label: '12h', heightPct: 45, val: '1.8tr' },
-        { label: '14h', heightPct: 76, val: '3.6tr' },
-        { label: '16h', heightPct: Math.min(96, 68 + boost), val: '4.1tr' },
-        { label: '18h', heightPct: 82, val: '3.9tr' },
-        { label: '20h', heightPct: 52, val: '2.1tr' },
-        { label: '22h', heightPct: 28, val: '0.9tr' },
-      ],
-      day: [
-        { label: 'T2', heightPct: 48, val: '3.2tr' },
-        { label: 'T3', heightPct: 62, val: '4.5tr' },
-        { label: 'T4', heightPct: 54, val: '3.8tr' },
-        { label: 'T5', heightPct: 79, val: '5.9tr' },
-        { label: 'T6', heightPct: 71, val: '5.2tr' },
-        { label: 'T7', heightPct: 91, val: '7.4tr' },
-        { label: 'CN', heightPct: Math.min(98, 75 + boost), val: '6.8tr' },
-      ],
-      week: [
-        { label: 'Tuần 1', heightPct: 52, val: '14.5tr' },
-        { label: 'Tuần 2', heightPct: 68, val: '19.2tr' },
-        { label: 'Tuần 3', heightPct: 84, val: '24.8tr' },
-        { label: 'Tuần 4', heightPct: Math.min(96, 74 + boost), val: '28.1tr' },
-      ],
-      month: [
-        { label: 'T1', heightPct: 38, val: '22tr' },
-        { label: 'T2', heightPct: 54, val: '31tr' },
-        { label: 'T3', heightPct: 49, val: '28tr' },
-        { label: 'T4', heightPct: 72, val: '42tr' },
-        { label: 'T5', heightPct: 46, val: '26tr' },
-        { label: 'T6', heightPct: 39, val: '21tr' },
-        { label: 'T7', heightPct: 81, val: '49tr' },
-        { label: 'T8', heightPct: 95, val: '58tr' },
-        { label: 'T9', heightPct: 73, val: '44tr' },
-        { label: 'T10', heightPct: 58, val: '35tr' },
-        { label: 'T11', heightPct: Math.min(98, 76 + boost), val: `${Math.max(46, Math.round(liveTotal / 1000000) + 46)}tr` },
-        { label: 'T12', heightPct: 42, val: '25tr' },
-      ],
-    };
-
-    return presets[range];
-  }, [orders, range]);
-
-  // Xếp hạng sản phẩm nổi bật bên phải (Sales By Category)
-  const rankedProducts = useMemo(() => {
-    const soldMap = new Map<string, number>();
-    for (const order of orders) {
-      if (order.status === 'cancelled') continue;
-      if (order.items && order.items.length > 0) {
-        for (const it of order.items) {
-          soldMap.set(it.product_id, (soldMap.get(it.product_id) ?? 0) + it.quantity);
-        }
-      } else {
-        soldMap.set(order.product_id, (soldMap.get(order.product_id) ?? 0) + order.quantity);
-      }
-    }
-
-    const list = products.slice(0, 5).map((p, idx) => {
-      const baseQty = [128, 94, 76, 52, 38][idx] ?? 25;
-      const qty = baseQty + (soldMap.get(p.id) ?? 0);
-      return { product: p, qty };
-    });
-
-    list.sort((a, b) => b.qty - a.qty);
-    const sumQty = list.reduce((s, item) => s + item.qty, 0) || 1;
-
-    return list.slice(0, 4).map((item, index) => ({
-      ...item,
-      isTop: index === 0,
-      pct: ((item.qty / sumQty) * 100).toFixed(2),
-    }));
-  }, [orders, products]);
+  const breakdownRows = useMemo(
+    () => buildRealProductBreakdown({ orders, products, mode: breakdownMode }),
+    [orders, products, breakdownMode]
+  );
 
   const recentOrders = orders.slice(0, 5);
 
   return (
     <>
       <div className="htf-adm-overview-grid">
-        {/* Cột trái: Biểu đồ Sales Overview */}
+        {/* Cột trái: Biểu đồ Sales Overview thực tế */}
         <section className="htf-adm-card">
           <div className="htf-adm-card__head">
-            <h2 className="htf-adm-card__title">Sales Overview · Biểu đồ doanh số</h2>
+            <div>
+              <h2 className="htf-adm-card__title">Sales Overview · Doanh thu thực tế</h2>
+              <small style={{ color: '#7e8299', fontSize: 12 }}>
+                Tổng trong kỳ đang xem:{' '}
+                <strong style={{ color: '#4466f2' }}>
+                  {chartData.periodRevenueVnd.toLocaleString('vi-VN')}đ
+                </strong>{' '}
+                ({chartData.periodOrdersCount} đơn hợp lệ)
+              </small>
+            </div>
             <span className="htf-adm-card__collapse">«</span>
           </div>
 
@@ -157,37 +115,49 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({
             </div>
 
             <div className="htf-adm-date-pills">
-              <span className="htf-adm-date-pill">01/11/2026</span>
-              <span className="htf-adm-date-pill">27/11/2026</span>
-              <span className="htf-adm-cal-btn" title="Lịch thống kê">
-                📅
-              </span>
+              <input
+                type="date"
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+                className="htf-adm-date-input"
+                title="Từ ngày"
+              />
+              <input
+                type="date"
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+                className="htf-adm-date-input"
+                title="Đến ngày"
+              />
             </div>
           </div>
 
           <div className="htf-adm-chart-legend">
-            <i /> Doanh thu nông sản
+            <i /> Doanh thu thực tế (VNĐ)
           </div>
 
           <div className="htf-adm-barchart">
             <div className="htf-adm-barchart__yaxis">
-              <span>60tr</span>
-              <span>45tr</span>
-              <span>30tr</span>
-              <span>15tr</span>
-              <span>0</span>
+              {chartData.yTicks.map((tick, idx) => (
+                <span key={idx}>{tick}</span>
+              ))}
             </div>
 
             <div className="htf-adm-barchart__plot">
-              {chartBars.map((bar) => (
+              {chartData.bars.map((bar) => (
                 <div
                   key={bar.label}
                   className="htf-adm-bar-col"
-                  title={`${bar.label}: ${bar.val}`}
+                  title={`${bar.label}: ${bar.revenueVnd.toLocaleString('vi-VN')}đ (${bar.orderCount} đơn)`}
                 >
+                  {bar.revenueVnd > 0 && (
+                    <span className="htf-adm-bar-col__val">
+                      {formatCompactVnd(bar.revenueVnd)}
+                    </span>
+                  )}
                   <div
-                    className="htf-adm-bar-col__stick"
-                    style={{ height: `${bar.heightPct}%` }}
+                    className={`htf-adm-bar-col__stick ${bar.revenueVnd === 0 ? 'is-zero' : ''}`}
+                    style={{ height: bar.revenueVnd > 0 ? `${bar.heightPct}%` : '4px' }}
                   />
                   <span className="htf-adm-bar-col__label">{bar.label}</span>
                 </div>
@@ -196,31 +166,47 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({
           </div>
         </section>
 
-        {/* Cột phải: Sales By Category */}
+        {/* Cột phải: Sales By Category / Product thực tế */}
         <section className="htf-adm-card">
           <div className="htf-adm-card__head">
             <h2 className="htf-adm-card__title">Sales By Category</h2>
-            <span className="htf-adm-card__collapse">«</span>
+            <div className="htf-adm-range-tabs">
+              <button
+                type="button"
+                className={breakdownMode === 'product' ? 'is-active' : ''}
+                onClick={() => setBreakdownMode('product')}
+              >
+                Sản phẩm
+              </button>
+              <button
+                type="button"
+                className={breakdownMode === 'category' ? 'is-active' : ''}
+                onClick={() => setBreakdownMode('category')}
+              >
+                Danh mục
+              </button>
+            </div>
           </div>
 
           <div className="htf-adm-catlist">
-            {rankedProducts.map(({ product, qty, pct, isTop }) => (
-              <div key={product.id} className="htf-adm-catitem">
+            {breakdownRows.map((row) => (
+              <div key={row.id} className="htf-adm-catitem">
                 <img
-                  src={product.image}
-                  alt={product.name}
+                  src={row.image}
+                  alt={row.name}
                   className="htf-adm-catitem__thumb"
                 />
                 <div className="htf-adm-catitem__info">
-                  <span className="htf-adm-catitem__sub">
-                    {product.category || 'Trái cây tươi'}
-                  </span>
-                  <strong className="htf-adm-catitem__name">{product.name}</strong>
+                  <span className="htf-adm-catitem__sub">{row.category}</span>
+                  <strong className="htf-adm-catitem__name">{row.name}</strong>
                 </div>
-                <span className={`htf-adm-catitem__qty ${isTop ? 'is-top' : ''}`}>
-                  {qty.toLocaleString('vi-VN')}
+                <span
+                  className={`htf-adm-catitem__qty ${row.isTop ? 'is-top' : ''}`}
+                  title="Số lượng phần đã bán thực tế"
+                >
+                  {row.soldQty} phần
                 </span>
-                <span className="htf-adm-catitem__pct">{pct}%</span>
+                <span className="htf-adm-catitem__pct">{row.sharePct}%</span>
               </div>
             ))}
           </div>
