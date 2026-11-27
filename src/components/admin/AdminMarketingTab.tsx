@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { createKnowledgeArticle, KnowledgeArticleDto } from '../../services/contentApi';
 import { SubscriberDto } from '../../services/newsletterApi';
+import { ImageUploaderField } from './ImageUploaderField';
 
 interface AdminMarketingTabProps {
   subscribers: SubscriberDto[];
@@ -10,7 +11,7 @@ interface AdminMarketingTabProps {
 }
 
 /**
- * Tab Quản lý Email nhận tin & Đăng bài Kiến thức lựa chọn
+ * Tab Quản lý Email nhận tin & Đăng bài Kiến thức lựa chọn (hỗ trợ tải ảnh bài viết lên Supabase)
  */
 export const AdminMarketingTab: React.FC<AdminMarketingTabProps> = ({
   subscribers,
@@ -21,17 +22,19 @@ export const AdminMarketingTab: React.FC<AdminMarketingTabProps> = ({
   const [title, setTitle] = useState('');
   const [excerpt, setExcerpt] = useState('');
   const [content, setContent] = useState('');
+  const [imageFile, setImageFile] = useState('imgRectangle222.png');
   const [saving, setSaving] = useState(false);
 
   const handlePublish = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     try {
-      const res = await createKnowledgeArticle({ title, excerpt, content });
+      const res = await createKnowledgeArticle({ title, excerpt, content, imageFile });
       onNotify(res.message || 'Đã đăng bài viết mới.');
       setTitle('');
       setExcerpt('');
       setContent('');
+      setImageFile('imgRectangle222.png');
       await onReload();
     } catch (err) {
       onNotify(err instanceof Error ? err.message : 'Không thể đăng bài viết.');
@@ -65,6 +68,14 @@ export const AdminMarketingTab: React.FC<AdminMarketingTabProps> = ({
               required
             />
           </label>
+
+          <ImageUploaderField
+            value={imageFile}
+            onChange={setImageFile}
+            onNotify={onNotify}
+            label="Ảnh bìa bài viết"
+          />
+
           <label>
             Nội dung chi tiết *
             <textarea

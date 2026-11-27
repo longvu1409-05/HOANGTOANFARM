@@ -1,4 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { ApiHttpError } from '../../services/apiClient';
+import {
+  AdminSessionDto,
+  clearStoredAdminToken,
+  verifyAdminSession,
+} from '../../services/authApi';
 import { ContactDto, fetchContacts } from '../../services/contactApi';
 import {
   fetchKnowledgeArticles,
@@ -16,6 +22,7 @@ import {
 import { fetchProducts } from '../../services/productApi';
 import { ProductItem } from '../../types/farm.types';
 import { AdminContactsTab } from './AdminContactsTab';
+import { AdminLoginCard } from './AdminLoginCard';
 import { AdminMarketingTab } from './AdminMarketingTab';
 import { AdminOrdersTab } from './AdminOrdersTab';
 import { AdminProductsTab } from './AdminProductsTab';
@@ -24,10 +31,12 @@ import './AdminDashboard.css';
 type AdminTab = 'orders' | 'products' | 'contacts' | 'marketing';
 
 /**
- * Trang Quản trị Toàn diện Hoàng Toàn Farm (?admin=1):
- * Quản lý Đơn hàng, Sản phẩm (Thêm/Sửa/Xóa), Liên hệ/Đánh giá, Email & Bài viết
+ * Trang Quản trị Toàn diện Hoàng Toàn Farm (?admin=1) có bảo vệ Đăng nhập
  */
 export const AdminDashboard: React.FC = () => {
+  const [authChecking, setAuthChecking] = useState<boolean>(true);
+  const [session, setSession] = useState<AdminSessionDto | null>(null);
+
   const [activeTab, setActiveTab] = useState<AdminTab>('orders');
   const [orders, setOrders] = useState<OrderDto[]>([]);
   const [summary, setSummary] = useState({
@@ -40,13 +49,25 @@ export const AdminDashboard: React.FC = () => {
   const [reviews, setReviews] = useState<ReviewDto[]>([]);
   const [subscribers, setSubscribers] = useState<SubscriberDto[]>([]);
   const [articles, setArticles] = useState<KnowledgeArticleDto[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
   const showNotice = (msg: string) => {
     setNotice(msg);
     window.setTimeout(() => setNotice((c) => (c === msg ? null : c)), 3500);
+  };
+
+  useEffect(() => {
+    verifyAdminSession().then((valid) => {
+      setSession(valid);
+      setAuthChecking(false);
+    });
+  }, []);
+
+  const handleLogout = () => {
+    clearStoredAdminToken();
+    setSession(null);
   };
 
   const loadAll = useCallback(async (orderFilters?: { phone?: string; status?: string }) => {
@@ -69,23 +90,40 @@ export const AdminDashboard: React.FC = () => {
       setReviews(reviewList);
       setArticles(artList);
     } catch (err) {
-      setErrorMsg(
-        err instanceof Error ? err.message : 'Không kết nối được Backend API (cổng 4000).'
-      );
+      if (err instanceof ApiHttpError && err.status === 401) {
+        clearStoredAdminToken();
+        setSession(null);
+        return;
+      }
+      setErrorMsg(err instanceof Error ? err.message : 'Không tải được dữ liệu Quản trị.');
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    loadAll();
-  }, [loadAll]);
+    if (session) {
+      loadAll();
+    }
+  }, [session, loadAll]);
 
   const handleOrderStatus = async (orderId: number, status: OrderStatus) => {
     await updateOrderStatus(orderId, status);
     showNotice('Đã cập nhật trạng thái đơn hàng.');
     await loadAll();
   };
+
+  if (authChecking) {
+    return (
+      <div className="htf-admin htf-admin--login">
+        <p className="htf-admin__empty">Đang kiểm tra phiên đăng nhập Quản trị...</p>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return <AdminLoginCard onLoginSuccess={(newSession) => setSession(newSession)} />;
+  }
 
   return (
     <div className="htf-admin">
@@ -94,12 +132,17 @@ export const AdminDashboard: React.FC = () => {
           <div>
             <h1 className="htf-admin__title">Quản trị Hoàng Toàn Farm</h1>
             <p className="htf-admin__sub">
-              Quản lý toàn bộ Sản phẩm (CRUD), Đơn đặt hàng, Liên hệ &amp; Bản tin
+              Xin chào <strong>{session.username}</strong> · Đã kết nối Supabase Database &amp; Storage
             </p>
           </div>
-          <a href="./" className="htf-admin__back-btn">
-            ← Về trang chủ
-          </a>
+          <div className="htf-admin__header-actions">
+            <a href="./" className="htf-admin__back-btn">
+              ← Về trang chủ
+            </a>
+            <button type="button" className="htf-admin__logout-btn" onClick={handleLogout}>
+              Đăng xuất
+            </button>
+          </div>
         </header>
 
         {errorMsg && <div className="htf-admin__error">{errorMsg}</div>}
@@ -159,7 +202,7 @@ export const AdminDashboard: React.FC = () => {
 
         {loading && orders.length === 0 && products.length === 0 ? (
           <section className="htf-admin__panel">
-            <p className="htf-admin__empty">Đang tải dữ liệu hệ thống...</p>
+            <p className="htf-admin__empty">Đang tải dữ liệu từ Supabase...</p>
           </section>
         ) : (
           <>

@@ -5,6 +5,7 @@ import { OrderStatus } from '../types/backend.types.js';
 import { formatVnd, generateOrderCode } from '../utils/formatters.js';
 import { sendBadRequest, sendCreated, sendNotFound, sendOk } from '../utils/response.js';
 import { ALLOWED_ORDER_STATUSES, validateCreateOrder } from '../utils/validators.js';
+import { extractBearerToken, verifyAdminToken } from '../utils/adminAuth.js';
 
 export const orderController = {
   async create(req: Request, res: Response) {
@@ -67,13 +68,24 @@ export const orderController = {
   },
 
   async list(req: Request, res: Response) {
-    const phone = typeof req.query.phone === 'string' ? req.query.phone : undefined;
-    const code = typeof req.query.code === 'string' ? req.query.code : undefined;
-    const status = typeof req.query.status === 'string' ? req.query.status : undefined;
+    const phone = typeof req.query.phone === 'string' ? req.query.phone.trim() : undefined;
+    const code = typeof req.query.code === 'string' ? req.query.code.trim() : undefined;
+    const status = typeof req.query.status === 'string' ? req.query.status.trim() : undefined;
+
+    const isAdmin = Boolean(verifyAdminToken(extractBearerToken(req)));
+    // Khách vãng lai chỉ được tra cứu đơn của mình khi truyền SĐT hoặc Mã đơn hàng
+    if (!isAdmin && !phone && !code) {
+      return res.status(401).json({
+        success: false,
+        message: 'Vui lòng đăng nhập Quản trị để xem toàn bộ danh sách đơn hàng.',
+      });
+    }
 
     const [orders, summary] = await Promise.all([
       orderRepo.findAll({ phone, code, status }),
-      orderRepo.getSummary(),
+      isAdmin
+        ? orderRepo.getSummary()
+        : Promise.resolve({ totalOrders: 0, totalRevenueVnd: 0, pendingOrders: 0 }),
     ]);
 
     return sendOk(res, {

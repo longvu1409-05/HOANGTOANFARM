@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { AVAILABLE_PRODUCT_IMAGES } from '../../data/productsData';
 import {
   createProduct,
   deleteProduct,
@@ -7,6 +6,7 @@ import {
   updateProduct,
 } from '../../services/productApi';
 import { ProductItem } from '../../types/farm.types';
+import { ImageUploaderField } from './ImageUploaderField';
 
 interface AdminProductsTabProps {
   products: ProductItem[];
@@ -28,7 +28,7 @@ const EMPTY_FORM: ProductPayload = {
 };
 
 /**
- * Tab Quản lý Sản phẩm (Thêm mới / Sửa / Xóa)
+ * Tab Quản lý Sản phẩm (Thêm mới / Tải ảnh Supabase Storage / Sửa / Xóa)
  */
 export const AdminProductsTab: React.FC<AdminProductsTabProps> = ({
   products,
@@ -93,7 +93,6 @@ export const AdminProductsTab: React.FC<AdminProductsTabProps> = ({
 
   return (
     <div className="htf-admin__split">
-      {/* Form Thêm / Sửa sản phẩm */}
       <section className="htf-admin__panel">
         <div className="htf-admin__panel-head">
           <h2>{editingId ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm mới'}</h2>
@@ -186,28 +185,12 @@ export const AdminProductsTab: React.FC<AdminProductsTabProps> = ({
             />
           </label>
 
-          <label>
-            Chọn ảnh sản phẩm
-            <select
-              value={form.imageFile}
-              onChange={(e) => setForm({ ...form, imageFile: e.target.value })}
-            >
-              {AVAILABLE_PRODUCT_IMAGES.map((img) => (
-                <option key={img.file} value={img.file}>
-                  {img.label}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label>
-            Hoặc nhập tên file / URL ảnh khác
-            <input
-              type="text"
-              value={form.imageFile}
-              onChange={(e) => setForm({ ...form, imageFile: e.target.value })}
-            />
-          </label>
+          <ImageUploaderField
+            value={form.imageFile}
+            onChange={(nextImg) => setForm({ ...form, imageFile: nextImg })}
+            onNotify={onNotify}
+            label="Ảnh sản phẩm (tải lên Supabase Storage)"
+          />
 
           <label>
             Mô tả chi tiết
@@ -238,7 +221,6 @@ export const AdminProductsTab: React.FC<AdminProductsTabProps> = ({
         </form>
       </section>
 
-      {/* Danh sách sản phẩm hiện có */}
       <section className="htf-admin__panel">
         <h2>Tất cả sản phẩm ({products.length})</h2>
         <div className="htf-admin__table-wrap">

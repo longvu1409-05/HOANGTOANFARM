@@ -58,6 +58,21 @@ export function getSupabaseEnv() {
   return { url, key };
 }
 
+/**
+ * Đọc tài khoản Quản trị viên (có thể đổi bất cứ lúc nào qua ADMIN_USERNAME / ADMIN_PASSWORD trong .env hoặc Vercel)
+ */
+export function getAdminCredentials() {
+  const fileEnv = isVercel ? {} : loadLocalEnvFiles();
+  const pick = (key: string) => (process.env[key] || fileEnv[key] || '').trim();
+  const { key: supaKey } = getSupabaseEnv();
+
+  return {
+    username: pick('ADMIN_USERNAME') || 'admin',
+    password: pick('ADMIN_PASSWORD') || 'hoangtoan2026',
+    signingSecret: pick('ADMIN_JWT_SECRET') || `${supaKey || 'htf-fallback'}::htf-admin-v1`,
+  };
+}
+
 export const ENV = {
   PORT: Number(process.env.PORT ?? 4000),
   NODE_ENV: process.env.NODE_ENV ?? 'development',

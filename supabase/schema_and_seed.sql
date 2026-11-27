@@ -141,6 +141,25 @@ create policy "public_read_knowledge"
   using (true);
 
 -- ============================================================================
+-- TẠO BUCKET LƯU TRỮ ẢNH SẢN PHẨM CÔNG KHAI TRÊN SUPABASE STORAGE
+-- ============================================================================
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'product-images',
+  'product-images',
+  true,
+  5242880,
+  array['image/png', 'image/jpeg', 'image/webp', 'image/gif']
+)
+on conflict (id) do update set public = true;
+
+drop policy if exists "public_read_product_images" on storage.objects;
+create policy "public_read_product_images"
+  on storage.objects for select
+  to anon, authenticated
+  using (bucket_id = 'product-images');
+
+-- ============================================================================
 -- NẠP DỮ LIỆU GỐC (7 SẢN PHẨM, 2 ĐÁNH GIÁ, 3 BÀI VIẾT KIẾN THỨC)
 -- ============================================================================
 insert into public.products (

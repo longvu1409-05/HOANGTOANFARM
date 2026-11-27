@@ -12,7 +12,7 @@ export function createApp() {
   const app = express();
 
   app.use(cors({ origin: ENV.CORS_ORIGIN }));
-  app.use(express.json({ limit: '1mb' }));
+  app.use(express.json({ limit: '4.5mb' }));
 
   app.use((req: Request, _res: Response, next: NextFunction) => {
     if (ENV.IS_VERCEL && !req.url.startsWith('/api')) {
