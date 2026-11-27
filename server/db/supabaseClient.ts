@@ -1,13 +1,11 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { getSupabaseEnv } from '../config/env';
+import { getSupabaseEnv } from '../config/env.js';
 
 let cachedClient: SupabaseClient | null = null;
 let cachedSignature = '';
 
 /**
- * Khởi tạo kết nối tới Supabase Postgres khi có SUPABASE_URL và SUPABASE_SECRET_KEY.
- * - Trên máy chủ (Express / Vercel Function), tắt persistSession & autoRefreshToken để tối ưu bộ nhớ.
- * - Nếu chưa cấu hình .env, hàm trả về null để hệ thống dùng SQLite local bình thường.
+ * Lấy đối tượng kết nối Supabase Postgres (dùng cho toàn bộ Backend)
  */
 export function getSupabaseClient(): SupabaseClient | null {
   const { url, key } = getSupabaseEnv();
@@ -32,12 +30,12 @@ export function getSupabaseClient(): SupabaseClient | null {
   return cachedClient;
 }
 
-/**
- * Kiểm tra loại khóa Supabase đang dùng (giúp chẩn đoán nhanh qua /api/health)
- */
-export function getSupabaseKeyType(): 'secret' | 'publishable_warning' | 'unconfigured' {
-  const { url, key } = getSupabaseEnv();
-  if (!url || !key) return 'unconfigured';
-  if (key.startsWith('sb_publishable_')) return 'publishable_warning';
-  return 'secret';
+export function requireSupabaseClient(): SupabaseClient {
+  const client = getSupabaseClient();
+  if (!client) {
+    throw new Error(
+      'Chưa cấu hình SUPABASE_URL và SUPABASE_SECRET_KEY trong biến môi trường (.env hoặc Vercel).'
+    );
+  }
+  return client;
 }

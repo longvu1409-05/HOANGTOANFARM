@@ -1,4 +1,4 @@
-import { CreateOrderInput, CreateProductInput, OrderStatus } from '../types/backend.types';
+import { CreateOrderInput, CreateProductInput, OrderStatus } from '../types/backend.types.js';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_CHARS_REGEX = /^[0-9+\s().-]+$/;

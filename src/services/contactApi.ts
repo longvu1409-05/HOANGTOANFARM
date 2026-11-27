@@ -1,5 +1,4 @@
-import { apiRequest, withApiFallback } from './apiClient';
-import { localFallbackStore } from './localFallbackStore';
+import { apiRequest } from './apiClient';
 
 export type ContactStatus = 'new' | 'replied';
 
@@ -23,43 +22,20 @@ export interface CreateContactPayload {
 }
 
 export async function submitContact(payload: CreateContactPayload) {
-  return withApiFallback(
-    () =>
-      apiRequest<ContactDto>('/api/contacts', {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      }),
-    () => {
-      const data = localFallbackStore.submitContact(payload);
-      return {
-        success: true,
-        message: 'Đã gửi thông tin liên hệ! Hoàng Toàn Farm sẽ phản hồi sớm nhất.',
-        data,
-      };
-    }
-  );
+  return apiRequest<ContactDto>('/api/contacts', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
 }
 
 export async function fetchContacts(): Promise<ContactDto[]> {
-  return withApiFallback(
-    async () => {
-      const res = await apiRequest<ContactDto[]>('/api/contacts');
-      return res.data;
-    },
-    () => localFallbackStore.listContacts()
-  );
+  const res = await apiRequest<ContactDto[]>('/api/contacts');
+  return res.data;
 }
 
 export async function updateContactStatus(id: number, status: ContactStatus) {
-  return withApiFallback(
-    () =>
-      apiRequest<ContactDto>(`/api/contacts/${id}/status`, {
-        method: 'PATCH',
-        body: JSON.stringify({ status }),
-      }),
-    () => {
-      const data = localFallbackStore.updateContactStatus(id, status);
-      return { success: true, message: 'Đã cập nhật trạng thái xử lý liên hệ.', data };
-    }
-  );
+  return apiRequest<ContactDto>(`/api/contacts/${id}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status }),
+  });
 }

@@ -1,20 +1,26 @@
 import { Request, Response } from 'express';
-import { ENV } from '../config/env';
-import { getSqliteDb } from '../db/database';
-import { getSupabaseClient, getSupabaseKeyType } from '../db/supabaseClient';
-import { sendOk } from '../utils/response';
+import { ENV } from '../config/env.js';
+import { getSupabaseClient } from '../db/supabaseClient.js';
+import { sendOk } from '../utils/response.js';
 
 export const healthController = {
-  check(_req: Request, res: Response) {
+  async check(_req: Request, res: Response) {
     const supabase = getSupabaseClient();
-    const keyType = getSupabaseKeyType();
+    let dbConnected = false;
+
+    if (supabase) {
+      const { error } = await supabase
+        .from('products')
+        .select('id', { count: 'exact', head: true });
+      dbConnected = !error;
+    }
 
     return sendOk(res, {
       service: 'Hoang Toan Farm API',
-      status: 'healthy',
+      status: dbConnected ? 'healthy' : 'unconfigured',
       environment: ENV.IS_VERCEL ? 'vercel' : ENV.NODE_ENV,
-      storage: supabase ? 'supabase' : getSqliteDb() ? 'sqlite' : 'json-store',
-      ...(supabase ? { supabaseKeyType: keyType } : {}),
+      storage: 'supabase',
+      dbConnected,
       timestamp: new Date().toISOString(),
     });
   },

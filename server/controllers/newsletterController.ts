@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { newsletterRepo } from '../repositories/newsletterRepo';
-import { sendBadRequest, sendCreated, sendOk } from '../utils/response';
-import { isValidEmail } from '../utils/validators';
+import { newsletterRepo } from '../repositories/newsletterRepo.js';
+import { sendBadRequest, sendCreated, sendOk } from '../utils/response.js';
+import { isValidEmail } from '../utils/validators.js';
 
 export const newsletterController = {
   async subscribe(req: Request, res: Response) {

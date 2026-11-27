@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
-import { contactRepo } from '../repositories/contactRepo';
-import { ContactStatus } from '../types/backend.types';
-import { sendBadRequest, sendCreated, sendNotFound, sendOk } from '../utils/response';
-import { isValidEmail, isValidPhone, normalizePhone } from '../utils/validators';
+import { contactRepo } from '../repositories/contactRepo.js';
+import { ContactStatus } from '../types/backend.types.js';
+import { sendBadRequest, sendCreated, sendNotFound, sendOk } from '../utils/response.js';
+import { isValidEmail, isValidPhone, normalizePhone } from '../utils/validators.js';
 
 export const contactController = {
   async create(req: Request, res: Response) {

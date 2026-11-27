@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { newsletterController } from '../controllers/newsletterController';
+import { newsletterController } from '../controllers/newsletterController.js';
 
 export const newsletterRoutes = Router();
 

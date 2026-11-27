@@ -1,10 +1,10 @@
 import { Router } from 'express';
-import { healthController } from '../controllers/healthController';
-import { productRoutes } from './productRoutes';
-import { orderRoutes } from './orderRoutes';
-import { newsletterRoutes } from './newsletterRoutes';
-import { contentRoutes } from './contentRoutes';
-import { contactRoutes } from './contactRoutes';
+import { healthController } from '../controllers/healthController.js';
+import { productRoutes } from './productRoutes.js';
+import { orderRoutes } from './orderRoutes.js';
+import { newsletterRoutes } from './newsletterRoutes.js';
+import { contentRoutes } from './contentRoutes.js';
+import { contactRoutes } from './contactRoutes.js';
 
 export const apiRouter = Router();
 
