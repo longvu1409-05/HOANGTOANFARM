@@ -188,7 +188,7 @@ export const FooterMain: React.FC<FooterMainProps> = ({
               đăng ký nhận tin
             </h3>
             <p className="htf-footer__news-desc" data-node-id="511:480">
-              Nhận ưu đãi và thông tin mới nhất từ Hoàng Toàn Famr
+              Nhận ưu đãi và thông tin mới nhất từ Hoàng Toàn Farm
             </p>
 
             <form className="htf-newsletter-form" onSubmit={handleSubmit} data-node-id="511:476">

@@ -39,6 +39,7 @@ export function validateCreateOrder(body: Record<string, unknown>): {
   const customerName = String(body.customerName ?? '').trim();
   const rawPhone = String(body.customerPhone ?? '').trim();
   const customerEmail = String(body.customerEmail ?? '').trim().toLowerCase();
+  const promoCode = String(body.promoCode ?? '').trim().toUpperCase();
   const address = String(body.address ?? '').trim();
   const note = String(body.note ?? '').trim();
 
@@ -86,6 +87,7 @@ export function validateCreateOrder(body: Record<string, unknown>): {
       customerName,
       customerPhone: normalizePhone(rawPhone),
       customerEmail,
+      promoCode,
       address,
       note,
     },

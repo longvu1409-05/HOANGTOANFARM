@@ -12,8 +12,29 @@ export interface CreateOrderPayload {
   customerName: string;
   customerPhone: string;
   customerEmail?: string;
+  promoCode?: string;
   address?: string;
   note?: string;
+}
+
+const CLIENT_PROMO_RATES: Record<string, number> = {
+  HTF10: 10,
+  VUSUA15: 15,
+};
+
+export function previewPromoDiscount(subtotalVnd: number, rawCode?: string) {
+  const code = (rawCode ?? '').trim().toUpperCase();
+  const percent = CLIENT_PROMO_RATES[code] ?? 0;
+  if (!percent) {
+    return { valid: false, percent: 0, discountVnd: 0, finalVnd: subtotalVnd };
+  }
+  const discountVnd = Math.round((subtotalVnd * percent) / 100);
+  return {
+    valid: true,
+    percent,
+    discountVnd,
+    finalVnd: Math.max(0, subtotalVnd - discountVnd),
+  };
 }
 
 export interface OrderItemDto {

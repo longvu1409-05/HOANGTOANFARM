@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CreateOrderPayload } from '../../services/orderApi';
+import { CreateOrderPayload, previewPromoDiscount } from '../../services/orderApi';
 import { ProductItem } from '../../types/farm.types';
 import './Modals.css';
 
@@ -12,7 +12,7 @@ interface OrderModalProps {
 }
 
 /**
- * Popup điền thông tin đặt quà nhanh — hỗ trợ nhập Email để nhận mã đơn & thông báo giao hàng
+ * Popup điền thông tin đặt quà nhanh — hỗ trợ nhập Email nhận mã vận đơn & Mã ưu đãi (HTF10)
  */
 export const OrderModal: React.FC<OrderModalProps> = ({
   products,
@@ -28,15 +28,21 @@ export const OrderModal: React.FC<OrderModalProps> = ({
   const [name, setName] = useState<string>('');
   const [phone, setPhone] = useState<string>('');
   const [email, setEmail] = useState<string>('');
+  const [promoCode, setPromoCode] = useState<string>('');
   const [address, setAddress] = useState<string>('');
   const [note, setNote] = useState<string>('');
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const chosen = products.find((p) => p.id === chosenId) ?? products[0];
-  const unitPrice = chosen?.priceVnd ?? 0;
+  const subtotalVnd = (chosen?.priceVnd ?? 0) * quantity;
+  const promoPreview = previewPromoDiscount(subtotalVnd, promoCode);
   const totalLabel =
-    unitPrice > 0 ? `${(unitPrice * quantity).toLocaleString('vi-VN')}đ` : chosen?.price ?? '';
+    subtotalVnd > 0
+      ? `${promoPreview.finalVnd.toLocaleString('vi-VN')}đ${
+          promoPreview.valid ? ` · -${promoPreview.percent}%` : ''
+        }`
+      : (chosen?.price ?? '');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,6 +56,7 @@ export const OrderModal: React.FC<OrderModalProps> = ({
         customerName: name.trim(),
         customerPhone: phone.trim(),
         customerEmail: email.trim(),
+        promoCode: promoCode.trim().toUpperCase(),
         address: address.trim(),
         note: note.trim(),
       });
@@ -68,7 +75,7 @@ export const OrderModal: React.FC<OrderModalProps> = ({
         </button>
         <h3 className="htf-modal__title htf-green-grad-text">Đặt quà trái cây tươi</h3>
         <p className="htf-modal__sub">
-          Tuyển chọn trực tiếp từ vườn Hoàng Toàn Farm – nhận mã tra cứu đơn qua Email.
+          Tuyển chọn trực tiếp từ vườn Hoàng Toàn Farm – hỗ trợ mã ưu đãi thành viên.
         </p>
 
         <form className="htf-modal__form" onSubmit={handleSubmit}>
@@ -141,16 +148,29 @@ export const OrderModal: React.FC<OrderModalProps> = ({
             </label>
           </div>
 
-          <label className="htf-modal__label">
-            Địa chỉ nhận hàng
-            <input
-              type="text"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              placeholder="Số nhà, đường, quận/huyện, tỉnh/thành..."
-              className="htf-modal__input"
-            />
-          </label>
+          <div className="htf-modal__row-2-eq">
+            <label className="htf-modal__label">
+              Địa chỉ nhận hàng
+              <input
+                type="text"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="Số nhà, đường, quận/huyện..."
+                className="htf-modal__input"
+              />
+            </label>
+
+            <label className="htf-modal__label">
+              Mã ưu đãi (nếu có)
+              <input
+                type="text"
+                value={promoCode}
+                onChange={(e) => setPromoCode(e.target.value)}
+                placeholder="Ví dụ: HTF10"
+                className="htf-modal__input"
+              />
+            </label>
+          </div>
 
           <label className="htf-modal__label">
             Ghi chú lời chúc / khung giờ giao

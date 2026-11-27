@@ -6,3 +6,5 @@ export const newsletterRoutes = Router();
 
 newsletterRoutes.get('/', requireAdmin, newsletterController.list);
 newsletterRoutes.post('/', newsletterController.subscribe);
+newsletterRoutes.post('/broadcast', requireAdmin, newsletterController.broadcast);
+newsletterRoutes.delete('/:id', requireAdmin, newsletterController.remove);

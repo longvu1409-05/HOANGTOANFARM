@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import { contentRepo } from '../repositories/contentRepo.js';
+import { newsletterRepo } from '../repositories/newsletterRepo.js';
+import { sendNewsletterBroadcast } from '../services/emailService.js';
 import { sendBadRequest, sendCreated, sendNotFound, sendOk } from '../utils/response.js';
 
 export const contentController = {
@@ -53,6 +55,26 @@ export const contentController = {
       content,
       imageFile,
     });
-    return sendCreated(res, created, `Đã đăng bài viết "${created.title}".`);
+
+    let notifiedCount = 0;
+    if (req.body?.notifySubscribers) {
+      const subs = await newsletterRepo.findAll();
+      if (subs.length > 0) {
+        const resMail = await sendNewsletterBroadcast({
+          recipients: subs.map((s) => s.email),
+          subject: `Bài viết mới: ${created.title}`,
+          content: `${created.excerpt}\n\n${created.content}`,
+        });
+        notifiedCount = resMail.sentCount;
+      }
+    }
+
+    return sendCreated(
+      res,
+      { ...created, notifiedCount },
+      notifiedCount > 0
+        ? `Đã đăng bài "${created.title}" & gửi thông báo cho ${notifiedCount} email đăng ký!`
+        : `Đã đăng bài viết "${created.title}".`
+    );
   },
 };

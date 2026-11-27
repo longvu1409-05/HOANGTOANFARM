@@ -47,6 +47,7 @@ export interface CreateOrderInput {
   customerName: string;
   customerPhone: string;
   customerEmail?: string;
+  promoCode?: string;
   address?: string;
   note?: string;
 }

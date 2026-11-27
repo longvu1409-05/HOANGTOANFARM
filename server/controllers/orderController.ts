@@ -8,6 +8,7 @@ import {
 import { OrderStatus } from '../types/backend.types.js';
 import { extractBearerToken, verifyAdminToken } from '../utils/adminAuth.js';
 import { formatVnd, generateOrderCode } from '../utils/formatters.js';
+import { calculatePromoDiscount, PROMO_CODES } from '../utils/promoCodes.js';
 import { sendBadRequest, sendCreated, sendNotFound, sendOk } from '../utils/response.js';
 import { ALLOWED_ORDER_STATUSES, validateCreateOrder } from '../utils/validators.js';
 
@@ -44,16 +45,31 @@ export const orderController = {
       });
     }
 
+    if (value.promoCode && !PROMO_CODES[value.promoCode]) {
+      return sendBadRequest(
+        res,
+        `Mã ưu đãi "${value.promoCode}" không hợp lệ (ví dụ hợp lệ: HTF10, VUSUA15).`
+      );
+    }
+
+    const { promo, discountVnd, finalTotalVnd } = calculatePromoDiscount(
+      totalPriceVnd,
+      value.promoCode
+    );
+    const finalNote = promo
+      ? `${value.note ? `${value.note} | ` : ''}Áp mã ${promo.code} (-${formatVnd(discountVnd)})`
+      : (value.note ?? '');
+
     try {
       const order = await orderRepo.create({
         orderCode: generateOrderCode(),
         lines,
-        totalPriceVnd,
+        totalPriceVnd: finalTotalVnd,
         customerName: value.customerName,
         customerPhone: value.customerPhone,
         customerEmail: value.customerEmail ?? '',
         address: value.address ?? '',
-        note: value.note ?? '',
+        note: finalNote,
       });
 
       const emailResult = await sendOrderCreatedEmail(order);

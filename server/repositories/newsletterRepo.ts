@@ -39,4 +39,15 @@ export const newsletterRepo = {
       created_at: String(r.created_at),
     }));
   },
+
+  async remove(id: number): Promise<boolean> {
+    const supabase = requireSupabaseClient();
+    const { data, error } = await supabase
+      .from('newsletter_subscribers')
+      .delete()
+      .eq('id', id)
+      .select('id');
+    if (error) throw new Error(error.message);
+    return (data?.length ?? 0) > 0;
+  },
 };

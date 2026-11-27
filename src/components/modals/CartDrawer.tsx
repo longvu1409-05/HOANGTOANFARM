@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CreateOrderPayload } from '../../services/orderApi';
+import { CreateOrderPayload, previewPromoDiscount } from '../../services/orderApi';
 import { CartItem } from '../../types/farm.types';
 import './Modals.css';
 
@@ -26,15 +26,18 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
+  const [promoCode, setPromoCode] = useState('');
   const [address, setAddress] = useState('');
   const [note, setNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const totalVnd = items.reduce(
+  const subtotalVnd = items.reduce(
     (sum, item) => sum + (item.product.priceVnd ?? 0) * item.quantity,
     0
   );
+  const promoPreview = previewPromoDiscount(subtotalVnd, promoCode);
+  const totalVnd = promoPreview.finalVnd;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,6 +51,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
         customerName: customerName.trim(),
         customerPhone: customerPhone.trim(),
         customerEmail: customerEmail.trim(),
+        promoCode: promoCode.trim().toUpperCase(),
         address: address.trim(),
         note: note.trim(),
       });
@@ -164,6 +168,17 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   value={customerEmail}
                   onChange={(e) => setCustomerEmail(e.target.value)}
                   placeholder="ban@gmail.com"
+                  className="htf-modal__input"
+                />
+              </label>
+
+              <label className="htf-modal__label">
+                Mã ưu đãi (ví dụ: HTF10)
+                <input
+                  type="text"
+                  value={promoCode}
+                  onChange={(e) => setPromoCode(e.target.value)}
+                  placeholder="Nhập mã giảm giá từ bản tin..."
                   className="htf-modal__input"
                 />
               </label>

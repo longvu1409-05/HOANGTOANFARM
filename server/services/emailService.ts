@@ -5,6 +5,10 @@ import {
   buildOrderCreatedEmail,
   buildOrderStatusUpdatedEmail,
 } from './emailTemplates.js';
+import {
+  buildNewsletterCampaignEmail,
+  buildNewsletterWelcomeEmail,
+} from './newsletterEmailTemplates.js';
 
 export interface EmailSendResult {
   sent: boolean;
@@ -26,10 +30,13 @@ export function getEmailProviderStatus(): {
   return { configured: false, provider: 'none' };
 }
 
-async function dispatchHtmlEmail(to: string, subject: string, html: string): Promise<EmailSendResult> {
+export async function dispatchHtmlEmail(
+  to: string,
+  subject: string,
+  html: string
+): Promise<EmailSendResult> {
   const cfg = getEmailEnv();
 
-  // 1. Ưu tiên Gmail SMTP (Mật khẩu ứng dụng 16 ký tự — gửi được cho mọi email khách hàng miễn phí)
   if (cfg.smtpUser && cfg.smtpPass) {
     try {
       const transporter = nodemailer.createTransport({
@@ -56,7 +63,6 @@ async function dispatchHtmlEmail(to: string, subject: string, html: string): Pro
     }
   }
 
-  // 2. Hoặc gửi qua Resend HTTP API (dành cho shop đã xác thực tên miền riêng)
   if (cfg.resendApiKey) {
     try {
       const response = await fetch('https://api.resend.com/emails', {
@@ -74,7 +80,6 @@ async function dispatchHtmlEmail(to: string, subject: string, html: string): Pro
       });
       if (!response.ok) {
         const errBody = await response.text();
-        console.error('[Email Resend Error]', errBody);
         return { sent: false, provider: 'resend', error: errBody };
       }
       return { sent: true, provider: 'resend' };
@@ -103,4 +108,36 @@ export async function sendOrderStatusEmail(order: OrderRecord): Promise<EmailSen
   const { siteUrl } = getEmailEnv();
   const { subject, html } = buildOrderStatusUpdatedEmail(order, siteUrl);
   return dispatchHtmlEmail(to, subject, html);
+}
+
+export async function sendNewsletterWelcomeEmail(email: string): Promise<EmailSendResult> {
+  const clean = email.trim();
+  if (!clean) return { sent: false, provider: 'none' };
+
+  const { siteUrl } = getEmailEnv();
+  const { subject, html } = buildNewsletterWelcomeEmail(clean, siteUrl);
+  return dispatchHtmlEmail(clean, subject, html);
+}
+
+export async function sendNewsletterBroadcast(params: {
+  recipients: string[];
+  subject: string;
+  content: string;
+  promoCode?: string;
+}): Promise<{ sentCount: number; total: number }> {
+  const { siteUrl } = getEmailEnv();
+  const { subject, html } = buildNewsletterCampaignEmail({
+    subject: params.subject,
+    content: params.content,
+    promoCode: params.promoCode,
+    ctaUrl: `${siteUrl}/#san-pham`,
+  });
+
+  let sentCount = 0;
+  for (const email of params.recipients) {
+    const res = await dispatchHtmlEmail(email, subject, html);
+    if (res.sent) sentCount += 1;
+  }
+
+  return { sentCount, total: params.recipients.length };
 }

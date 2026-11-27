@@ -29,6 +29,7 @@ export async function createKnowledgeArticle(payload: {
   excerpt: string;
   content: string;
   imageFile?: string;
+  notifySubscribers?: boolean;
 }) {
   return apiRequest<KnowledgeArticleDto>('/api/content/knowledge', {
     method: 'POST',
