@@ -1,0 +1,520 @@
+/**
+ * AdminLayout.css — Bố cục tổng thể Creative E-Shop Admin:
+ * Sidebar tối (#1e1e2d), Topbar trắng nổi, Breadcrumb Header và màn hình Đăng nhập
+ */
+.htf-adm-shell {
+  min-height: 100vh;
+  display: flex;
+  background: #f5f6fa;
+  color: #1e293b;
+  font-family: 'Inter', 'Segoe UI', Roboto, Arial, sans-serif;
+}
+
+/* ================= SIDEBAR TỐI BÊN TRÁI ================= */
+.htf-adm-sidebar {
+  width: 252px;
+  flex-shrink: 0;
+  background: #1e1e2d;
+  color: #a2a5b9;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  transition: width 0.22s ease, transform 0.22s ease;
+  z-index: 40;
+}
+
+.htf-adm-shell.is-collapsed .htf-adm-sidebar {
+  width: 76px;
+}
+
+.htf-adm-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 22px 20px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.htf-adm-brand__ring {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: conic-gradient(#f73164, #ff9f43, #51bb25, #4466f2, #a855f7, #f73164);
+  padding: 3px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.htf-adm-brand__ring-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: #1e1e2d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.htf-adm-brand__text strong {
+  display: block;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+}
+
+.htf-adm-brand__text span {
+  display: block;
+  font-size: 11.5px;
+  color: #888c9f;
+  margin-top: 1px;
+}
+
+.htf-adm-shell.is-collapsed .htf-adm-brand__text,
+.htf-adm-shell.is-collapsed .htf-adm-nav__label,
+.htf-adm-shell.is-collapsed .htf-adm-nav__badge,
+.htf-adm-shell.is-collapsed .htf-adm-nav__arrow,
+.htf-adm-shell.is-collapsed .htf-adm-nav__section {
+  display: none;
+}
+
+.htf-adm-nav {
+  padding: 14px 12px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.htf-adm-nav__section {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.9px;
+  color: #5c6078;
+  padding: 12px 12px 4px;
+}
+
+.htf-adm-nav__item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 13px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: #b5b7c8;
+  font-size: 13.5px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.16s ease, color 0.16s ease;
+}
+
+.htf-adm-nav__item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+}
+
+.htf-adm-nav__item.is-active {
+  background: linear-gradient(90deg, rgba(68, 102, 242, 0.24), rgba(68, 102, 242, 0.06));
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.htf-adm-nav__icon {
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #7e8299;
+}
+
+.htf-adm-nav__item.is-active .htf-adm-nav__icon,
+.htf-adm-nav__item:hover .htf-adm-nav__icon {
+  color: #6584f7;
+}
+
+.htf-adm-nav__label {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.htf-adm-nav__badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.htf-adm-nav__badge--blue {
+  background: #4466f2;
+  color: #ffffff;
+}
+
+.htf-adm-nav__badge--pink {
+  background: #f73164;
+  color: #ffffff;
+}
+
+.htf-adm-nav__badge--green {
+  background: #51bb25;
+  color: #ffffff;
+}
+
+.htf-adm-nav__arrow {
+  font-size: 12px;
+  color: #646880;
+}
+
+/* ================= VÙNG NỘI DUNG BÊN PHẢI ================= */
+.htf-adm-main {
+  flex: 1;
+  min-width: 0;
+  padding: 18px 26px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ================= TOPBAR TRẮNG NỔI ================= */
+.htf-adm-topbar {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 12px 20px;
+  box-shadow: 0 4px 20px rgba(30, 30, 45, 0.04);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.htf-adm-topbar__left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.htf-adm-icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  border: 1px solid #eef0f6;
+  background: #f8f9fc;
+  color: #3f4254;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.htf-adm-icon-btn:hover {
+  background: #eef2ff;
+  color: #4466f2;
+  border-color: #dbe4ff;
+}
+
+.htf-adm-quick-pills {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding-left: 6px;
+}
+
+.htf-adm-quick-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: none;
+  background: transparent;
+  color: #3f4254;
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 2px;
+}
+
+.htf-adm-quick-pill:hover {
+  color: #4466f2;
+}
+
+.htf-adm-quick-pill__count {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #4466f2;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.htf-adm-topbar__right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.htf-adm-search {
+  display: flex;
+  align-items: center;
+  background: #f5f6fa;
+  border-radius: 999px;
+  padding: 3px 4px 3px 14px;
+  border: 1px solid #ebedf3;
+}
+
+.htf-adm-search input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 13px;
+  width: 170px;
+  color: #1e293b;
+}
+
+.htf-adm-search__btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: #4466f2;
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.htf-adm-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 6px;
+}
+
+.htf-adm-profile__avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+  color: #3730a3;
+  font-weight: 800;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.htf-adm-profile__info strong {
+  display: block;
+  font-size: 13.5px;
+  color: #181c32;
+  line-height: 1.2;
+}
+
+.htf-adm-profile__info span {
+  font-size: 11.5px;
+  color: #888c9f;
+}
+
+.htf-adm-bell {
+  position: relative;
+}
+
+.htf-adm-bell__dot {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #f73164;
+  color: #ffffff;
+  font-size: 10.5px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ================= TIÊU ĐỀ TRANG & THANH CÔNG CỤ GÓC PHẢI ================= */
+.htf-adm-pagehead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.htf-adm-pagehead__title {
+  font-size: 23px;
+  font-weight: 700;
+  color: #181c32;
+  margin: 0;
+}
+
+.htf-adm-breadcrumb {
+  margin-top: 4px;
+  font-size: 13px;
+  color: #7e8299;
+}
+
+.htf-adm-breadcrumb strong {
+  color: #181c32;
+  font-weight: 600;
+}
+
+.htf-adm-quickbox {
+  display: inline-flex;
+  align-items: center;
+  background: #ffffff;
+  padding: 5px;
+  border-radius: 12px;
+  box-shadow: 0 3px 14px rgba(30, 30, 45, 0.05);
+  gap: 4px;
+}
+
+.htf-adm-quickbox button {
+  width: 36px;
+  height: 34px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: #5e6278;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.htf-adm-quickbox button:hover {
+  background: #f1f5f9;
+  color: #4466f2;
+}
+
+.htf-adm-quickbox button.is-primary {
+  background: #4466f2;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(68, 102, 242, 0.35);
+}
+
+/* ================= MÀN HÌNH ĐĂNG NHẬP HIỆN ĐẠI ================= */
+.htf-adm-login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: radial-gradient(circle at top left, #282a42 0%, #161724 65%);
+  font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
+}
+
+.htf-adm-login-card {
+  width: 100%;
+  max-width: 430px;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 34px 32px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);
+  text-align: center;
+}
+
+.htf-adm-login-card__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.htf-adm-login-card__title {
+  font-size: 24px;
+  font-weight: 800;
+  color: #181c32;
+  margin: 0;
+}
+
+.htf-adm-login-card__sub {
+  margin-top: 6px;
+  font-size: 13.5px;
+  color: #7e8299;
+}
+
+.htf-adm-login-card__pass {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.htf-adm-login-card__pass input {
+  width: 100%;
+  padding-right: 58px !important;
+}
+
+.htf-adm-login-card__eye {
+  position: absolute;
+  right: 10px;
+  border: none;
+  background: transparent;
+  color: #4466f2;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.htf-adm-login-card__back {
+  display: inline-block;
+  margin-top: 18px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #4466f2;
+  text-decoration: none;
+}
+
+.htf-adm-login-card__back:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 960px) {
+  .htf-adm-quick-pills {
+    display: none;
+  }
+
+  .htf-adm-sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+  }
+
+  .htf-adm-shell.is-collapsed .htf-adm-sidebar {
+    transform: translateX(-100%);
+  }
+
+  .htf-adm-main {
+    padding: 16px;
+  }
+}

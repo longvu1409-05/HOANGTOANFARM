@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ApiHttpError } from '../../services/apiClient';
 import {
   AdminSessionDto,
@@ -22,22 +22,35 @@ import {
 import { fetchProducts } from '../../services/productApi';
 import { ProductItem } from '../../types/farm.types';
 import { AdminContactsTab } from './AdminContactsTab';
+import { AdminKpiCards } from './AdminKpiCards';
 import { AdminLoginCard } from './AdminLoginCard';
 import { AdminMarketingTab } from './AdminMarketingTab';
 import { AdminOrdersTab } from './AdminOrdersTab';
+import { AdminOverviewTab } from './AdminOverviewTab';
 import { AdminProductsTab } from './AdminProductsTab';
-import './AdminDashboard.css';
+import { AdminSidebar, AdminViewId } from './AdminSidebar';
+import { AdminTopbar } from './AdminTopbar';
+import './AdminLayout.css';
+import './AdminWidgets.css';
 
-type AdminTab = 'orders' | 'products' | 'contacts' | 'marketing';
+const VIEW_TITLES: Record<AdminViewId, { title: string; crumb: string }> = {
+  overview: { title: 'E Shop · Hoàng Toàn Farm', crumb: 'Default' },
+  orders: { title: 'Quản lý Đơn đặt hàng', crumb: 'Orders' },
+  products: { title: 'Kho Sản phẩm & Giá bán', crumb: 'Products' },
+  contacts: { title: 'Liên hệ & Đánh giá', crumb: 'CRM & Reviews' },
+  marketing: { title: 'Bản tin & Kiến thức', crumb: 'Marketing' },
+};
 
 /**
- * Trang Quản trị Toàn diện Hoàng Toàn Farm (?admin=1) có bảo vệ Đăng nhập
+ * Hệ thống Quản trị Chuyên nghiệp Hoàng Toàn E-Shop (?admin=1)
  */
 export const AdminDashboard: React.FC = () => {
   const [authChecking, setAuthChecking] = useState<boolean>(true);
   const [session, setSession] = useState<AdminSessionDto | null>(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
+  const [activeView, setActiveView] = useState<AdminViewId>('overview');
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
-  const [activeTab, setActiveTab] = useState<AdminTab>('orders');
   const [orders, setOrders] = useState<OrderDto[]>([]);
   const [summary, setSummary] = useState({
     totalOrders: 0,
@@ -55,7 +68,7 @@ export const AdminDashboard: React.FC = () => {
 
   const showNotice = (msg: string) => {
     setNotice(msg);
-    window.setTimeout(() => setNotice((c) => (c === msg ? null : c)), 3500);
+    window.setTimeout(() => setNotice((c) => (c === msg ? null : c)), 3800);
   };
 
   useEffect(() => {
@@ -70,7 +83,7 @@ export const AdminDashboard: React.FC = () => {
     setSession(null);
   };
 
-  const loadAll = useCallback(async (orderFilters?: { phone?: string; status?: string }) => {
+  const loadAll = useCallback(async (orderFilters?: { phone?: string; code?: string; status?: string }) => {
     setLoading(true);
     setErrorMsg(null);
     try {
@@ -95,7 +108,7 @@ export const AdminDashboard: React.FC = () => {
         setSession(null);
         return;
       }
-      setErrorMsg(err instanceof Error ? err.message : 'Không tải được dữ liệu Quản trị.');
+      setErrorMsg(err instanceof Error ? err.message : 'Không tải được dữ liệu từ Supabase.');
     } finally {
       setLoading(false);
     }
@@ -113,10 +126,37 @@ export const AdminDashboard: React.FC = () => {
     await loadAll();
   };
 
+  const handleGlobalSearch = () => {
+    const q = searchQuery.trim();
+    setActiveView('orders');
+    if (!q) {
+      loadAll();
+      return;
+    }
+    const isCode = q.toUpperCase().startsWith('HTF-');
+    loadAll(isCode ? { code: q } : { phone: q });
+  };
+
+  const derivedStats = useMemo(() => {
+    const categoriesCount = new Set(products.map((p) => p.category || 'Trái cây tươi')).size || 3;
+    const totalStockUnits = products.reduce((sum, p) => sum + (p.stock ?? 0), 0);
+    const unreadContacts = contacts.filter((c) => c.status === 'new').length;
+    const uniquePhones = new Set(orders.map((o) => o.customer_phone)).size;
+    const totalCustomersReach = uniquePhones + subscribers.length + contacts.length + reviews.length;
+
+    return {
+      categoriesCount,
+      totalStockUnits,
+      unreadContacts,
+      totalCustomersReach,
+      unreadNotifications: summary.pendingOrders + unreadContacts,
+    };
+  }, [products, contacts, orders, subscribers, reviews, summary.pendingOrders]);
+
   if (authChecking) {
     return (
-      <div className="htf-admin htf-admin--login">
-        <p className="htf-admin__empty">Đang kiểm tra phiên đăng nhập Quản trị...</p>
+      <div className="htf-adm-login-page">
+        <p style={{ color: '#cbd5e1', fontSize: 15 }}>Đang khởi tạo hệ thống Quản trị...</p>
       </div>
     );
   }
@@ -125,102 +165,119 @@ export const AdminDashboard: React.FC = () => {
     return <AdminLoginCard onLoginSuccess={(newSession) => setSession(newSession)} />;
   }
 
+  const meta = VIEW_TITLES[activeView];
+
   return (
-    <div className="htf-admin">
-      <div className="htf-admin__container">
-        <header className="htf-admin__header">
+    <div className={`htf-adm-shell ${sidebarCollapsed ? 'is-collapsed' : ''}`}>
+      <AdminSidebar
+        activeView={activeView}
+        onSelectView={setActiveView}
+        pendingOrdersCount={summary.pendingOrders}
+        productsCount={products.length}
+        unreadContactsCount={derivedStats.unreadContacts}
+        subscribersCount={subscribers.length}
+        onLogout={handleLogout}
+      />
+
+      <main className="htf-adm-main">
+        <AdminTopbar
+          username={session.username}
+          categoriesCount={derivedStats.categoriesCount}
+          productsCount={products.length}
+          pendingOrdersCount={summary.pendingOrders}
+          unreadNotifications={derivedStats.unreadNotifications}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          onSearchSubmit={handleGlobalSearch}
+          onToggleSidebar={() => setSidebarCollapsed((prev) => !prev)}
+          onSelectView={setActiveView}
+          onLogout={handleLogout}
+        />
+
+        {/* Dòng Tiêu đề trang + Breadcrumb + Hộp 4 nút công cụ góc phải */}
+        <div className="htf-adm-pagehead">
           <div>
-            <h1 className="htf-admin__title">Quản trị Hoàng Toàn Farm</h1>
-            <p className="htf-admin__sub">
-              Xin chào <strong>{session.username}</strong> · Đã kết nối Supabase Database &amp; Storage
-            </p>
+            <h1 className="htf-adm-pagehead__title">{meta.title}</h1>
+            <div className="htf-adm-breadcrumb">
+              Home / <strong>Dashboard</strong> / {meta.crumb}
+            </div>
           </div>
-          <div className="htf-admin__header-actions">
-            <a href="./" className="htf-admin__back-btn">
-              ← Về trang chủ
-            </a>
-            <button type="button" className="htf-admin__logout-btn" onClick={handleLogout}>
-              Đăng xuất
+
+          <div className="htf-adm-quickbox">
+            <button
+              type="button"
+              onClick={() => setActiveView('marketing')}
+              title="Bản tin Email & Bài viết"
+            >
+              ✉
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveView('contacts')}
+              title="Tin nhắn liên hệ khách hàng"
+            >
+              💬
+            </button>
+            <button
+              type="button"
+              onClick={() => loadAll()}
+              title="Làm mới dữ liệu trực tiếp"
+            >
+              ↻
+            </button>
+            <button
+              type="button"
+              className="is-primary"
+              onClick={() => setActiveView('products')}
+              title="Thêm / Quản lý sản phẩm"
+            >
+              ★
             </button>
           </div>
-        </header>
+        </div>
 
         {errorMsg && <div className="htf-admin__error">{errorMsg}</div>}
         {notice && <div className="htf-admin__notice">{notice}</div>}
 
-        <div className="htf-admin__stats">
-          <div className="htf-admin__stat-card">
-            <span>Sản phẩm đang bán</span>
-            <strong>{products.length}</strong>
-          </div>
-          <div className="htf-admin__stat-card">
-            <span>Tổng đơn hàng ({summary.pendingOrders} chờ)</span>
-            <strong>{summary.totalOrders}</strong>
-          </div>
-          <div className="htf-admin__stat-card">
-            <span>Doanh thu tạm tính</span>
-            <strong>{summary.totalRevenueVnd.toLocaleString('vi-VN')}đ</strong>
-          </div>
-          <div className="htf-admin__stat-card">
-            <span>Liên hệ / Email tin</span>
-            <strong>
-              {contacts.length} / {subscribers.length}
-            </strong>
-          </div>
-        </div>
-
-        <nav className="htf-admin__tabs" aria-label="Phân mục quản trị">
-          <button
-            type="button"
-            className={activeTab === 'orders' ? 'is-active' : ''}
-            onClick={() => setActiveTab('orders')}
-          >
-            Đơn hàng ({orders.length})
-          </button>
-          <button
-            type="button"
-            className={activeTab === 'products' ? 'is-active' : ''}
-            onClick={() => setActiveTab('products')}
-          >
-            Sản phẩm ({products.length})
-          </button>
-          <button
-            type="button"
-            className={activeTab === 'contacts' ? 'is-active' : ''}
-            onClick={() => setActiveTab('contacts')}
-          >
-            Liên hệ &amp; Đánh giá ({contacts.length})
-          </button>
-          <button
-            type="button"
-            className={activeTab === 'marketing' ? 'is-active' : ''}
-            onClick={() => setActiveTab('marketing')}
-          >
-            Bản tin &amp; Bài viết ({subscribers.length})
-          </button>
-        </nav>
+        {/* 4 thẻ KPI luôn hiển thị nổi bật */}
+        <AdminKpiCards
+          totalRevenueVnd={summary.totalRevenueVnd}
+          totalOrders={summary.totalOrders}
+          pendingOrders={summary.pendingOrders}
+          productsCount={products.length}
+          totalStockUnits={derivedStats.totalStockUnits}
+          totalCustomersReach={derivedStats.totalCustomersReach}
+        />
 
         {loading && orders.length === 0 && products.length === 0 ? (
           <section className="htf-admin__panel">
-            <p className="htf-admin__empty">Đang tải dữ liệu từ Supabase...</p>
+            <p className="htf-admin__empty">Đang đồng bộ dữ liệu trực tiếp từ Supabase...</p>
           </section>
         ) : (
           <>
-            {activeTab === 'orders' && (
+            {activeView === 'overview' && (
+              <AdminOverviewTab
+                orders={orders}
+                products={products}
+                onUpdateStatus={handleOrderStatus}
+                onSelectView={setActiveView}
+              />
+            )}
+            {activeView === 'orders' && (
               <AdminOrdersTab
                 orders={orders}
                 onFilter={(filters) => loadAll(filters)}
                 onUpdateStatus={handleOrderStatus}
               />
             )}
-            {activeTab === 'products' && (
+            {activeView === 'products' && (
               <AdminProductsTab
                 products={products}
                 onReload={() => loadAll()}
                 onNotify={showNotice}
               />
             )}
-            {activeTab === 'contacts' && (
+            {activeView === 'contacts' && (
               <AdminContactsTab
                 contacts={contacts}
                 reviews={reviews}
@@ -228,7 +285,7 @@ export const AdminDashboard: React.FC = () => {
                 onNotify={showNotice}
               />
             )}
-            {activeTab === 'marketing' && (
+            {activeView === 'marketing' && (
               <AdminMarketingTab
                 subscribers={subscribers}
                 articles={articles}
@@ -238,7 +295,7 @@ export const AdminDashboard: React.FC = () => {
             )}
           </>
         )}
-      </div>
+      </main>
     </div>
   );
 };

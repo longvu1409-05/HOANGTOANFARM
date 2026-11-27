@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { HEADER_ASSETS } from '../../constants/assets';
 import { AdminSessionDto, loginAdmin } from '../../services/authApi';
 
 interface AdminLoginCardProps {
@@ -7,7 +6,7 @@ interface AdminLoginCardProps {
 }
 
 /**
- * Màn hình đăng nhập bảo mật trước khi vào trang Quản trị Hoàng Toàn Farm (?admin=1)
+ * Màn hình Đăng nhập Quản trị E-Shop hiện đại
  */
 export const AdminLoginCard: React.FC<AdminLoginCardProps> = ({ onLoginSuccess }) => {
   const [username, setUsername] = useState('admin');
@@ -31,17 +30,19 @@ export const AdminLoginCard: React.FC<AdminLoginCardProps> = ({ onLoginSuccess }
   };
 
   return (
-    <div className="htf-admin htf-admin--login">
-      <div className="htf-admin-login">
-        <div className="htf-admin-login__logo">
-          <img src={HEADER_ASSETS.headerLogo} alt="Hoàng Toàn Farm" />
+    <div className="htf-adm-login-page">
+      <div className="htf-adm-login-card">
+        <div className="htf-adm-login-card__badge">
+          <div className="htf-adm-brand__ring">
+            <div className="htf-adm-brand__ring-inner">HT</div>
+          </div>
         </div>
-        <h1 className="htf-admin-login__title">Đăng nhập Quản trị</h1>
-        <p className="htf-admin-login__sub">
-          Khu vực dành riêng cho Quản trị viên Hoàng Toàn Farm
+        <h1 className="htf-adm-login-card__title">Hoàng Toàn Admin</h1>
+        <p className="htf-adm-login-card__sub">
+          Đăng nhập hệ thống quản trị E-Shop &amp; Supabase Cloud
         </p>
 
-        <form className="htf-admin__form" onSubmit={handleSubmit}>
+        <form className="htf-admin__form" style={{ textAlign: 'left', marginTop: 20 }} onSubmit={handleSubmit}>
           <label>
             Tài khoản Quản trị
             <input
@@ -56,7 +57,7 @@ export const AdminLoginCard: React.FC<AdminLoginCardProps> = ({ onLoginSuccess }
 
           <label>
             Mật khẩu
-            <div className="htf-admin-login__pass-wrap">
+            <div className="htf-adm-login-card__pass">
               <input
                 type={showPass ? 'text' : 'password'}
                 value={password}
@@ -67,7 +68,7 @@ export const AdminLoginCard: React.FC<AdminLoginCardProps> = ({ onLoginSuccess }
               />
               <button
                 type="button"
-                className="htf-admin-login__eye"
+                className="htf-adm-login-card__eye"
                 onClick={() => setShowPass((prev) => !prev)}
               >
                 {showPass ? 'Ẩn' : 'Hiện'}
@@ -78,11 +79,11 @@ export const AdminLoginCard: React.FC<AdminLoginCardProps> = ({ onLoginSuccess }
           {errorMsg && <div className="htf-admin__error">{errorMsg}</div>}
 
           <button type="submit" className="htf-admin__btn-primary" disabled={loading}>
-            {loading ? 'Đang xác thực...' : 'Đăng nhập vào hệ thống'}
+            {loading ? 'Đang xác thực...' : 'Đăng nhập hệ thống'}
           </button>
         </form>
 
-        <a href="./" className="htf-admin-login__home-link">
+        <a href="./" className="htf-adm-login-card__back">
           ← Quay về trang chủ cửa hàng
         </a>
       </div>
