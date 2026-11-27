@@ -1,7 +1,7 @@
 import { DatabaseSync } from 'node:sqlite';
 
 /**
- * Nạp dữ liệu mẫu ban đầu khi cơ sở dữ liệu còn trống
+ * Nạp dữ liệu mẫu ban đầu (7 sản phẩm: 4 nổi bật + 3 sản phẩm mở rộng, đánh giá, bài viết)
  */
 export function seedDatabase(db: DatabaseSync): void {
   seedProducts(db);
@@ -10,19 +10,24 @@ export function seedDatabase(db: DatabaseSync): void {
 }
 
 function seedProducts(db: DatabaseSync): void {
-  const countRow = db.prepare('SELECT COUNT(*) AS count FROM products').get() as { count: number };
-  if (countRow.count > 0) return;
-
-  const insert = db.prepare(`
-    INSERT INTO products (id, node_id, name, spec_1, spec_2, unit, price_vnd, price_label, image_file, crop_json, stock, is_featured)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  const upsert = db.prepare(`
+    INSERT INTO products (
+      id, node_id, name, category, description,
+      spec_1, spec_2, unit, price_vnd, price_label,
+      image_file, crop_json, stock, is_featured, is_active
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+    ON CONFLICT(id) DO NOTHING
   `);
 
   const products = [
+    // 4 sản phẩm nổi bật hiển thị mặc định theo thiết kế Figma
     [
       'vu-sua-tuyen-chon',
       '683:344',
       'Vú sữa Hoàng Toàn – Tuyển chọn',
+      'Trái cây tươi',
+      'Những trái vú sữa Hoàng Kim HK-2 loại 1 nặng từ 450–550g/quả, tuyển chọn kỹ lưỡng tại HTX Mường Khoe Xanh, vỏ vàng óng, ngọt đậm thanh mát.',
       'Quả to 450 - 550g',
       'Ngọt đậm, vỏ mỏng, ít hạt',
       'Hộp 6 quả',
@@ -37,6 +42,8 @@ function seedProducts(db: DatabaseSync): void {
       'vu-sua-tieu-chuan',
       '683:355',
       'Vú sữa Hoàng Toàn  - Tiêu chuẩn',
+      'Trái cây tươi',
+      'Dòng vú sữa Hoàng Kim đạt chuẩn VietGAP, thu hoạch đúng độ chín tự nhiên trên cây, phù hợp thưởng thức hằng ngày cho cả gia đình.',
       'Quả to 450 - 550g',
       'Ngọt đậm, vỏ mỏng, ít hạt',
       'Hộp 6 quả',
@@ -51,6 +58,8 @@ function seedProducts(db: DatabaseSync): void {
       'gio-qua-cao-cap',
       '683:377',
       'Giỏ quà trái cây cao cấp',
+      'Quà biếu',
+      'Giỏ quà thiết kế trang nhã kết hợp vú sữa Hoàng Toàn cùng các loại trái cây tuyển chọn theo mùa, thích hợp biếu tặng đối tác và người thân.',
       'Quả to 450 - 550g',
       'Ngọt đậm, vỏ mỏng, ít hạt',
       'Giỏ quà',
@@ -65,6 +74,8 @@ function seedProducts(db: DatabaseSync): void {
       'combo-gia-dinh',
       '683:399',
       'Combo Trái cây gia đình',
+      'Combo',
+      'Combo trái cây tươi sạch cân bằng dinh dưỡng cho gia đình, được đóng gói cẩn thận và giao nhanh trong ngày giữ trọn độ tươi ngon.',
       'Quả to 450 - 550g',
       'Ngọt đậm, vỏ mỏng, ít hạt',
       'Combo',
@@ -75,10 +86,60 @@ function seedProducts(db: DatabaseSync): void {
       65,
       1,
     ],
+
+    // + 3 sản phẩm mới bổ sung
+    [
+      'vu-sua-hoang-kim-hop-12',
+      'custom:p5',
+      'Vú sữa Hoàng Kim – Hộp Quà 12 Quả',
+      'Quà biếu',
+      'Hộp quà 12 trái vú sữa Hoàng Kim HK-2 kích thước đồng đều, lót xốp chống sốc cao cấp kèm thiệp chúc mừng sang trọng.',
+      'Quả đều 400 - 500g',
+      'Hộp biếu sang trọng, kèm thiệp',
+      'Hộp 12 quả',
+      1390000,
+      '1.390.000đ',
+      'imgRectangle222.png',
+      null,
+      35,
+      0,
+    ],
+    [
+      'vu-sua-hoang-kim-tui-2kg',
+      'custom:p6',
+      'Vú sữa Hoàng Kim HK-2 (Túi 2kg)',
+      'Trái cây tươi',
+      'Túi 2kg gồm 4–5 quả vú sữa tươi hái trong ngày tại vườn Điện Biên, vị ngọt dịu tự nhiên, thịt quả dày và mọng nước.',
+      '4 - 5 quả tuyển tại vườn',
+      'Thu hoạch sáng sớm trong ngày',
+      'Túi 2kg',
+      289000,
+      '289.000đ',
+      'imgRectangle223.png',
+      null,
+      90,
+      0,
+    ],
+    [
+      'set-qua-trai-cay-doanh-nghiep',
+      'custom:p7',
+      'Set Quà Biếu Doanh Nghiệp Hoàng Toàn',
+      'Quà biếu',
+      'Bộ quà tặng tri ân khách hàng & đối tác doanh nghiệp gồm vú sữa Hoàng Toàn và hoa quả đặc sản sạch đạt chứng nhận VietGAP/OCOP.',
+      'Vú sữa HK-2 & quả theo mùa',
+      'Hỗ trợ in thiệp logo doanh nghiệp',
+      'Set quà',
+      890000,
+      '890.000đ',
+      'imgRectangle21.png',
+      null,
+      45,
+      0,
+    ],
   ] as const;
 
   for (const item of products) {
-    insert.run(...item);
+    upsert.run(...item);
   }
 }
 
@@ -118,7 +179,7 @@ function seedKnowledge(db: DatabaseSync): void {
     'nhan-biet-vu-sua-chin',
     'Cách nhận biết vú sữa chín tự nhiên',
     'Hướng dẫn nhận biết độ chín phù hợp để lựa chọn quả có chất lượng ổn định khi sử dụng',
-    'Vú sữa Hoàng Kim chín tự nhiên có lớp vỏ vàng óng đều, phần đáy quả hơi căng nhẹ và tỏa hương thơm dịu đặc trưng. Tránh chọn quả bị dập cuống hoặc có vết thâm sâu.',
+    'Vú sữa Hoàng Kim (HK-2) chín tự nhiên trên cây có màu vàng óng đều, bề mặt vỏ căng bóng, phần cuống vẫn còn tươi xanh và tỏa mùi thơm dịu nhẹ đặc trưng. Khi bóp nhẹ bằng đầu ngón tay, quả cho cảm giác mềm đàn hồi vừa phải chứ không bị nhũn. Tránh chọn quả có vết dập thâm sâu ở phần đáy hoặc vỏ bị héo nhăn.',
     'imgRectangle131.png',
     1
   );
@@ -126,7 +187,7 @@ function seedKnowledge(db: DatabaseSync): void {
     'dau-hieu-nhan-biet',
     'Dấu hiệu nhận biết vú sữa ngon khi chọn mua',
     'Một số đặc điểm giúp bạn nhận biết và lựa chọn quả phù hợp theo nhu cầu sử dụng',
-    'Quả ngon thường cầm chắc tay, vỏ bóng mịn, trọng lượng đạt 450g – 550g cho thịt dày, ít hạt và độ ngọt thanh tự nhiên.',
+    'Để chọn được trái vú sữa Hoàng Kim ngon chuẩn vị vườn: ưu tiên quả có trọng lượng từ 450g – 550g, cầm chắc tay, vỏ mỏng bóng mịn và phần núm quả hơi nhọn tự nhiên. Dòng vú sữa chuẩn VietGAP tại HTX Mường Khoe Xanh thường ít mủ, thịt quả dày, dẻo thơm và ít hạt.',
     'imgRectangle222.png',
     0
   );
@@ -134,7 +195,7 @@ function seedKnowledge(db: DatabaseSync): void {
     'cach-su-dung',
     'Cách sử dụng vú sữa đúng cách để giữ hương vị tốt',
     'Gợi ý cách bảo quản và sử dụng giúp giữ được chất lượng và trải nghiệm khi dùng',
-    'Nên bảo quản vú sữa ở ngăn mát 8–12°C và thưởng thức trong vòng 3–5 ngày kể từ khi nhận để cảm nhận trọn vẹn độ tươi ngọt.',
+    'Sau khi nhận hàng, bạn có thể nắn nhẹ đều quanh vỏ trước khi bổ để phần sữa hòa quyện với thịt quả. Bảo quản vú sữa chưa ăn ở ngăn mát tủ lạnh nhiệt độ 8–12°C, dùng ngon nhất trong 3–5 ngày. Khi thưởng thức nên cắt làm 4 hoặc 6 múi để giữ trọn độ giòn ngọt và hương thơm tự nhiên.',
     'imgRectangle223.png',
     0
   );

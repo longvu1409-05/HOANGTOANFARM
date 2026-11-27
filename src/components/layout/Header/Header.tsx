@@ -6,7 +6,7 @@ import './Header.css';
 
 interface HeaderProps {
   cartCount: number;
-  onOpenOrderModal: () => void;
+  onOpenCart: () => void;
   onSelectProduct: (product: ProductItem) => void;
 }
 
@@ -15,7 +15,7 @@ interface HeaderProps {
  */
 export const Header: React.FC<HeaderProps> = ({
   cartCount,
-  onOpenOrderModal,
+  onOpenCart,
   onSelectProduct,
 }) => {
   return (
@@ -23,7 +23,7 @@ export const Header: React.FC<HeaderProps> = ({
       <TopBar />
       <Navbar
         cartCount={cartCount}
-        onOpenOrderModal={onOpenOrderModal}
+        onOpenOrderModal={onOpenCart}
         onSelectProduct={onSelectProduct}
       />
     </header>

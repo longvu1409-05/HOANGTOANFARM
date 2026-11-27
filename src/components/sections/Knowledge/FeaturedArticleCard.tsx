@@ -5,12 +5,16 @@ import { CroppedImage } from '../../common/CroppedImage';
 
 interface FeaturedArticleCardProps {
   article: KnowledgeArticleItem;
+  onReadArticle: (idOrTitle: string) => void;
 }
 
 /**
  * Thẻ bài viết lớn "BÀI NỔI BẬT" nằm bên trái mục Kiến thức lựa chọn
  */
-export const FeaturedArticleCard: React.FC<FeaturedArticleCardProps> = ({ article }) => {
+export const FeaturedArticleCard: React.FC<FeaturedArticleCardProps> = ({
+  article,
+  onReadArticle,
+}) => {
   return (
     <article className="htf-knowledge-featured" data-node-id={article.nodeId}>
       <div className="htf-knowledge-featured__img-wrap">
@@ -35,14 +39,19 @@ export const FeaturedArticleCard: React.FC<FeaturedArticleCardProps> = ({ articl
         <p className="htf-knowledge-featured__excerpt" data-node-id="722:585">
           {article.excerpt}
         </p>
-        <a href="#kien-thuc" className="htf-btn-read-cream" data-node-id="755:373">
+        <button
+          type="button"
+          className="htf-btn-read-cream"
+          onClick={() => onReadArticle(article.id)}
+          data-node-id="755:373"
+        >
           <span data-node-id="755:375">Đọc chi tiết</span>
           <img
             src={PRESS_KNOWLEDGE_ASSETS.readMoreGreenArrow}
             alt=""
             className="htf-svg-intrinsic"
           />
-        </a>
+        </button>
       </div>
     </article>
   );

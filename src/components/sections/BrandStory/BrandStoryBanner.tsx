@@ -4,10 +4,14 @@ import { STORY_BULLETS } from '../../../data/storyData';
 import { CroppedImage } from '../../common/CroppedImage';
 import './BrandStory.css';
 
+interface BrandStoryBannerProps {
+  onOpenStory: () => void;
+}
+
 /**
  * Banner "Hành trình làm nông bằng cái tâm" (Câu chuyện thương hiệu)
  */
-export const BrandStoryBanner: React.FC = () => {
+export const BrandStoryBanner: React.FC<BrandStoryBannerProps> = ({ onOpenStory }) => {
   return (
     <section className="htf-story-banner" id="cau-chuyen" data-node-id="689:455">
       <div className="htf-story-banner__bg" aria-hidden="true">
@@ -49,11 +53,16 @@ export const BrandStoryBanner: React.FC = () => {
             ))}
           </ul>
 
-          <a href="#vung-trong" className="htf-btn-story" data-node-id="693:457">
+          <button
+            type="button"
+            className="htf-btn-story"
+            onClick={onOpenStory}
+            data-node-id="693:457"
+          >
             <span className="htf-green-grad-text" data-node-id="693:458">
               xem câu chuyện của chúng tôi
             </span>
-          </a>
+          </button>
         </div>
       </div>
     </section>

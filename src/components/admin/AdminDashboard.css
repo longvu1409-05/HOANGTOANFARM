@@ -5,11 +5,11 @@
 }
 
 .htf-admin__container {
-  max-width: 1120px;
+  max-width: 1180px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 20px;
 }
 
 .htf-admin__header {
@@ -50,6 +50,16 @@
   font-size: 14px;
 }
 
+.htf-admin__notice {
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
 .htf-admin__stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -76,6 +86,41 @@
   color: var(--htf-green-primary);
 }
 
+.htf-admin__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.htf-admin__tabs button {
+  padding: 10px 18px;
+  border-radius: 24px;
+  border: 1px solid rgba(50, 96, 46, 0.25);
+  background: var(--htf-white);
+  color: var(--htf-green-dark);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.htf-admin__tabs button.is-active {
+  background-image: var(--htf-grad-green);
+  color: var(--htf-gold-light);
+  border-color: var(--htf-green-dark);
+}
+
+.htf-admin__split {
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.htf-admin__stack {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
 .htf-admin__panel {
   background: var(--htf-white);
   border-radius: 12px;
@@ -100,6 +145,7 @@
 .htf-admin__filter {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .htf-admin__filter input {
@@ -120,6 +166,108 @@
   font-weight: 600;
 }
 
+.htf-admin__form {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.htf-admin__form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--htf-green-dark);
+}
+
+.htf-admin__form input,
+.htf-admin__form select,
+.htf-admin__form textarea {
+  border: 1px solid #9ab09a;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-family: inherit;
+  font-size: 13.5px;
+  background: var(--htf-white);
+}
+
+.htf-admin__form-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.htf-admin__checkbox {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 8px !important;
+}
+
+.htf-admin__btn-primary {
+  height: 40px;
+  border: none;
+  border-radius: 20px;
+  background-image: var(--htf-grad-green);
+  color: var(--htf-gold-light);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.htf-admin__btn-light {
+  padding: 6px 12px;
+  border-radius: 14px;
+  border: 1px solid #9ab09a;
+  background: var(--htf-bg-page);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.htf-admin__btn-sm {
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: none;
+  background: var(--htf-green-primary);
+  color: var(--htf-white);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.htf-admin__btn-danger {
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: none;
+  background: #fee2e2;
+  color: #991b1b;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.htf-admin__actions {
+  display: flex;
+  gap: 6px;
+}
+
+.htf-admin__prod-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.htf-admin__prod-cell img {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.htf-admin__prod-cell small {
+  display: block;
+  color: #4f6450;
+}
+
 .htf-admin__table-wrap {
   overflow-x: auto;
 }
@@ -127,15 +275,21 @@
 .htf-admin__table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 14px;
+  font-size: 13.5px;
 }
 
 .htf-admin__table th,
 .htf-admin__table td {
   text-align: left;
-  padding: 10px 12px;
+  padding: 10px;
   border-bottom: 1px solid #e6eee6;
   vertical-align: top;
+}
+
+.htf-admin__order-items {
+  margin: 0;
+  padding-left: 16px;
+  list-style: disc;
 }
 
 .htf-admin__note {
@@ -168,10 +322,17 @@
 .htf-admin__subs li {
   display: flex;
   justify-content: space-between;
+  gap: 12px;
   padding: 8px 12px;
   border-radius: 8px;
   background: var(--htf-bg-page);
-  font-size: 14px;
+  font-size: 13.5px;
+}
+
+@media (max-width: 980px) {
+  .htf-admin__split {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 780px) {

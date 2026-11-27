@@ -9,8 +9,37 @@
   margin-top: 24px;
   display: grid;
   grid-template-columns: repeat(4, 286px);
-  justify-content: space-between;
-  gap: 17px;
+  justify-content: flex-start;
+  gap: 24px 17px;
+}
+
+.htf-products-filters {
+  margin-top: 18px;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.htf-filter-pill {
+  padding: 6px 16px;
+  border-radius: 999px;
+  border: 1px solid #809a7f;
+  background: var(--htf-white);
+  color: var(--htf-green-dark);
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.htf-filter-pill.is-active {
+  background-image: var(--htf-grad-green);
+  color: var(--htf-gold-light);
+  border-color: var(--htf-green-dark);
+}
+
+.htf-product-card__clickable {
+  cursor: pointer;
 }
 
 .htf-product-card {
@@ -164,9 +193,10 @@
 }
 
 .htf-btn-all-products {
-  width: 256.18px;
+  min-width: 256.18px;
   height: 38px;
   border-radius: 23.32px;
+  border: none;
   background-image: var(--htf-grad-green);
   box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
   display: inline-flex;
@@ -212,6 +242,11 @@
 
 .htf-btn-all-products__chevron img {
   transform: rotate(-90deg);
+  transition: transform 0.2s ease;
+}
+
+.htf-btn-all-products__chevron.is-rotated img {
+  transform: rotate(180deg);
 }
 
 @media (max-width: 1220px) {

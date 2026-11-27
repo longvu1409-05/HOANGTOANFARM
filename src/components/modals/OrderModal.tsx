@@ -7,22 +7,25 @@ interface OrderModalProps {
   products: ProductItem[];
   selectedProduct: ProductItem | null;
   onClose: () => void;
+  onAddToCart: (product: ProductItem, quantity: number) => void;
   onConfirmOrder: (payload: CreateOrderPayload) => Promise<void>;
 }
 
 /**
- * Popup điền thông tin đặt quà nhanh — gửi trực tiếp lên Backend (/api/orders)
+ * Popup điền thông tin đặt quà nhanh — có thể Đặt ngay hoặc Thêm vào giỏ hàng
  */
 export const OrderModal: React.FC<OrderModalProps> = ({
   products,
   selectedProduct,
   onClose,
+  onAddToCart,
   onConfirmOrder,
 }) => {
   const [chosenId, setChosenId] = useState<string>(selectedProduct?.id ?? products[0].id);
   const [quantity, setQuantity] = useState<number>(1);
   const [name, setName] = useState<string>('');
   const [phone, setPhone] = useState<string>('');
+  const [address, setAddress] = useState<string>('');
   const [note, setNote] = useState<string>('');
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -39,10 +42,10 @@ export const OrderModal: React.FC<OrderModalProps> = ({
 
     try {
       await onConfirmOrder({
-        productId: chosen.id,
-        quantity,
+        items: [{ productId: chosen.id, quantity }],
         customerName: name.trim(),
         customerPhone: phone.trim(),
+        address: address.trim(),
         note: note.trim(),
       });
     } catch (err) {
@@ -119,7 +122,18 @@ export const OrderModal: React.FC<OrderModalProps> = ({
           </label>
 
           <label className="htf-modal__label">
-            Ghi chú lời chúc / địa chỉ giao
+            Địa chỉ nhận hàng
+            <input
+              type="text"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              placeholder="Số nhà, đường, quận/huyện, tỉnh/thành..."
+              className="htf-modal__input"
+            />
+          </label>
+
+          <label className="htf-modal__label">
+            Ghi chú lời chúc / khung giờ giao
             <textarea
               value={note}
               onChange={(e) => setNote(e.target.value)}
@@ -131,9 +145,21 @@ export const OrderModal: React.FC<OrderModalProps> = ({
 
           {errorMsg && <p className="htf-modal__error">{errorMsg}</p>}
 
-          <button type="submit" className="htf-modal__submit" disabled={submitting}>
-            {submitting ? 'Đang gửi đơn...' : `Xác nhận đặt quà (${totalLabel})`}
-          </button>
+          <div className="htf-detail-actions">
+            <button
+              type="button"
+              className="htf-modal__btn-outline"
+              onClick={() => {
+                onAddToCart(chosen, quantity);
+                onClose();
+              }}
+            >
+              + Thêm vào giỏ
+            </button>
+            <button type="submit" className="htf-modal__submit" disabled={submitting}>
+              {submitting ? 'Đang gửi đơn...' : `Đặt ngay (${totalLabel})`}
+            </button>
+          </div>
         </form>
       </div>
     </div>

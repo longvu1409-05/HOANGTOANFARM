@@ -9,10 +9,18 @@ import { FeaturedArticleCard } from './FeaturedArticleCard';
 import { KnowledgeArticleCard } from './KnowledgeArticleCard';
 import './Knowledge.css';
 
+interface SelectionKnowledgeSectionProps {
+  onReadArticle: (idOrTitle: string) => void;
+  onOpenAllKnowledge: () => void;
+}
+
 /**
  * Khu vực "Kiến thức lựa chọn": gồm 1 bài nổi bật lớn bên trái & 2 bài ngang bên phải
  */
-export const SelectionKnowledgeSection: React.FC = () => {
+export const SelectionKnowledgeSection: React.FC<SelectionKnowledgeSectionProps> = ({
+  onReadArticle,
+  onOpenAllKnowledge,
+}) => {
   return (
     <section className="htf-knowledge-section" id="kien-thuc" data-node-id="785:416">
       <div className="htf-knowledge-section__bg" aria-hidden="true">
@@ -28,17 +36,29 @@ export const SelectionKnowledgeSection: React.FC = () => {
         />
 
         <div className="htf-knowledge-grid">
-          <FeaturedArticleCard article={FEATURED_KNOWLEDGE_ARTICLE} />
+          <FeaturedArticleCard
+            article={FEATURED_KNOWLEDGE_ARTICLE}
+            onReadArticle={onReadArticle}
+          />
 
           <div className="htf-knowledge-side">
             {SIDE_KNOWLEDGE_ARTICLES.map((article) => (
-              <KnowledgeArticleCard key={article.id} article={article} />
+              <KnowledgeArticleCard
+                key={article.id}
+                article={article}
+                onReadArticle={onReadArticle}
+              />
             ))}
           </div>
         </div>
 
         <div className="htf-knowledge-more">
-          <a href="#kien-thuc" className="htf-btn-all-knowledge" data-node-id="722:634">
+          <button
+            type="button"
+            className="htf-btn-all-knowledge"
+            onClick={onOpenAllKnowledge}
+            data-node-id="722:634"
+          >
             <img
               src={PRESS_KNOWLEDGE_ASSETS.knowledgeBookIcon}
               alt=""
@@ -46,7 +66,7 @@ export const SelectionKnowledgeSection: React.FC = () => {
               data-node-id="777:400"
             />
             <span data-node-id="722:636">xem toàn bộ kiến thức</span>
-          </a>
+          </button>
         </div>
       </div>
     </section>

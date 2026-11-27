@@ -1,43 +1,131 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { PRODUCTS as FALLBACK_PRODUCTS } from '../data/productsData';
+import { createReview, fetchKnowledgeArticles, fetchReviews, KnowledgeArticleDto, ReviewDto } from '../services/contentApi';
+import { submitContact } from '../services/contactApi';
 import { createOrder, CreateOrderPayload } from '../services/orderApi';
 import { subscribeNewsletterEmail } from '../services/newsletterApi';
 import { fetchProducts } from '../services/productApi';
-import { ProductItem, ProcessStep, PressVideoItem } from '../types/farm.types';
+import { CartItem, PressVideoItem, ProcessStep, ProductItem } from '../types/farm.types';
+
+const CART_STORAGE_KEY = 'htf_cart_items_v1';
+
+function loadInitialCart(): CartItem[] {
+  try {
+    const raw = localStorage.getItem(CART_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as CartItem[];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
 
 /**
- * Custom Hook quản lý trạng thái tương tác & kết nối API Backend trên trang chủ
+ * Custom Hook quản lý toàn bộ trạng thái & gọi API Backend trên trang chủ Hoàng Toàn Farm
  */
 export function useHomeInteractions() {
   const [products, setProducts] = useState<ProductItem[]>(FALLBACK_PRODUCTS);
-  const [cartCount, setCartCount] = useState<number>(0);
+  const [knowledgeList, setKnowledgeList] = useState<KnowledgeArticleDto[]>([]);
+  const [reviews, setReviews] = useState<ReviewDto[]>([]);
+  const [cartItems, setCartItems] = useState<CartItem[]>(loadInitialCart);
+
+  // Các modal / drawer đang mở
+  const [cartOpen, setCartOpen] = useState<boolean>(false);
   const [orderModalOpen, setOrderModalOpen] = useState<boolean>(false);
+  const [orderLookupOpen, setOrderLookupOpen] = useState<boolean>(false);
+  const [contactModalOpen, setContactModalOpen] = useState<boolean>(false);
+  const [reviewModalOpen, setReviewModalOpen] = useState<boolean>(false);
+  const [storyModalOpen, setStoryModalOpen] = useState<boolean>(false);
+
   const [selectedProduct, setSelectedProduct] = useState<ProductItem | null>(null);
+  const [detailProduct, setDetailProduct] = useState<ProductItem | null>(null);
   const [activeStep, setActiveStep] = useState<ProcessStep | null>(null);
   const [activeVideo, setActiveVideo] = useState<PressVideoItem | null>(null);
+  const [activeArticle, setActiveArticle] = useState<KnowledgeArticleDto | null>(null);
+  const [knowledgeListOpen, setKnowledgeListOpen] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  useEffect(() => {
-    let active = true;
-    fetchProducts()
-      .then((list) => {
-        if (active && list.length > 0) {
-          setProducts(list);
-        }
-      })
-      .catch(() => {
-        // Giữ dữ liệu tĩnh mặc định nếu Backend chưa bật
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  const showToast = (msg: string) => {
+  const showToast = useCallback((msg: string) => {
     setToastMessage(msg);
     window.setTimeout(() => {
       setToastMessage((curr) => (curr === msg ? null : curr));
-    }, 4000);
+    }, 4200);
+  }, []);
+
+  const refreshCatalog = useCallback(async () => {
+    try {
+      const [prodList, artList, revList] = await Promise.all([
+        fetchProducts(),
+        fetchKnowledgeArticles(),
+        fetchReviews(),
+      ]);
+      if (prodList.length > 0) setProducts(prodList);
+      setKnowledgeList(artList);
+      setReviews(revList);
+    } catch {
+      // Giữ fallback tĩnh nếu server tạm tắt
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshCatalog();
+  }, [refreshCatalog]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
+    } catch {
+      // ignore storage errors
+    }
+  }, [cartItems]);
+
+  const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+
+  const addToCart = (product: ProductItem, quantity = 1) => {
+    setCartItems((prev) => {
+      const existing = prev.find((i) => i.product.id === product.id);
+      if (existing) {
+        return prev.map((i) =>
+          i.product.id === product.id
+            ? { ...i, quantity: Math.min(50, i.quantity + quantity) }
+            : i
+        );
+      }
+      return [...prev, { product, quantity }];
+    });
+    showToast(`Đã thêm ${quantity} × "${product.name}" vào giỏ hàng.`);
+  };
+
+  const updateCartQuantity = (productId: string, quantity: number) => {
+    if (quantity <= 0) {
+      setCartItems((prev) => prev.filter((i) => i.product.id !== productId));
+      return;
+    }
+    setCartItems((prev) =>
+      prev.map((i) =>
+        i.product.id === productId ? { ...i, quantity: Math.min(50, quantity) } : i
+      )
+    );
+  };
+
+  const removeFromCart = (productId: string) => {
+    setCartItems((prev) => prev.filter((i) => i.product.id !== productId));
+  };
+
+  const checkoutOrder = async (payload: CreateOrderPayload, clearCartAfter = false) => {
+    const res = await createOrder(payload);
+    if (clearCartAfter) {
+      setCartItems([]);
+      setCartOpen(false);
+    }
+    setOrderModalOpen(false);
+    setSelectedProduct(null);
+    await refreshCatalog();
+    showToast(
+      res.message ||
+        `Đặt thành công! Mã đơn ${res.data.order_code} (${res.data.totalPriceLabel ?? ''}).`
+    );
+    return res.data;
   };
 
   const openGeneralOrderModal = () => {
@@ -50,24 +138,16 @@ export function useHomeInteractions() {
     setOrderModalOpen(true);
   };
 
-  const closeOrderModal = () => {
-    setOrderModalOpen(false);
-  };
-
-  const confirmOrder = async (payload: CreateOrderPayload) => {
-    const res = await createOrder(payload);
-    setCartCount((count) => count + payload.quantity);
-    setOrderModalOpen(false);
-    setSelectedProduct(null);
-    showToast(
-      res.message ||
-        `Cảm ơn ${payload.customerName}! Mã đơn ${res.data.order_code} đã được ghi nhận.`
+  const openKnowledgeByIdOrTitle = (idOrTitle: string) => {
+    const found = knowledgeList.find(
+      (a) => a.id === idOrTitle || a.title.toLowerCase() === idOrTitle.toLowerCase()
     );
-  };
-
-  const closeInfoModal = () => {
-    setActiveStep(null);
-    setActiveVideo(null);
+    if (found) {
+      setActiveArticle(found);
+      setKnowledgeListOpen(false);
+    } else {
+      setKnowledgeListOpen(true);
+    }
   };
 
   const subscribeNewsletter = async (email: string) => {
@@ -75,26 +155,62 @@ export function useHomeInteractions() {
       const res = await subscribeNewsletterEmail(email);
       showToast(res.message || `Đã đăng ký nhận ưu đãi thành công cho ${email}!`);
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Không thể đăng ký lúc này.';
-      showToast(message);
+      showToast(err instanceof Error ? err.message : 'Không thể đăng ký lúc này.');
     }
+  };
+
+  const sendContact = async (payload: Parameters<typeof submitContact>[0]) => {
+    const res = await submitContact(payload);
+    setContactModalOpen(false);
+    showToast(res.message || 'Đã gửi yêu cầu liên hệ thành công!');
+  };
+
+  const sendReview = async (payload: { author: string; quote: string; rating: number }) => {
+    const res = await createReview(payload);
+    setReviewModalOpen(false);
+    await refreshCatalog();
+    showToast(res.message || 'Cảm ơn bạn đã gửi đánh giá!');
   };
 
   return {
     products,
+    knowledgeList,
+    reviews,
+    cartItems,
     cartCount,
+    cartOpen,
+    setCartOpen,
     orderModalOpen,
+    setOrderModalOpen,
+    orderLookupOpen,
+    setOrderLookupOpen,
+    contactModalOpen,
+    setContactModalOpen,
+    reviewModalOpen,
+    setReviewModalOpen,
+    storyModalOpen,
+    setStoryModalOpen,
     selectedProduct,
+    detailProduct,
+    setDetailProduct,
     activeStep,
+    setActiveStep,
     activeVideo,
+    setActiveVideo,
+    activeArticle,
+    setActiveArticle,
+    knowledgeListOpen,
+    setKnowledgeListOpen,
     toastMessage,
+    addToCart,
+    updateCartQuantity,
+    removeFromCart,
+    checkoutOrder,
     openGeneralOrderModal,
     openProductOrderModal,
-    closeOrderModal,
-    confirmOrder,
-    setActiveStep,
-    setActiveVideo,
-    closeInfoModal,
+    openKnowledgeByIdOrTitle,
     subscribeNewsletter,
+    sendContact,
+    sendReview,
   };
 }

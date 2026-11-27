@@ -100,6 +100,7 @@
   width: 118px;
   height: 28px;
   border-radius: 23.32px;
+  border: none;
   background: var(--htf-cream-soft);
   color: var(--htf-green-primary);
   display: inline-flex;

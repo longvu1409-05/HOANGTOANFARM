@@ -5,12 +5,20 @@ import { CroppedImage } from '../../common/CroppedImage';
 
 interface FooterMainProps {
   onSubscribed: (email: string) => Promise<void>;
+  onOpenContact: () => void;
+  onOpenOrderLookup: () => void;
+  onOpenStory: () => void;
 }
 
 /**
  * Khối chân trang nền xanh đậm 5 cột + thanh bản quyền & huy hiệu chứng nhận
  */
-export const FooterMain: React.FC<FooterMainProps> = ({ onSubscribed }) => {
+export const FooterMain: React.FC<FooterMainProps> = ({
+  onSubscribed,
+  onOpenContact,
+  onOpenOrderLookup,
+  onOpenStory,
+}) => {
   const [email, setEmail] = useState<string>('');
   const [submitting, setSubmitting] = useState<boolean>(false);
 
@@ -55,7 +63,29 @@ export const FooterMain: React.FC<FooterMainProps> = ({ onSubscribed }) => {
             <ul className="htf-footer__links" data-node-id="511:402">
               {FOOTER_ABOUT_LINKS.map((link) => (
                 <li key={link.label}>
-                  <a href={link.href}>{link.label}</a>
+                  {link.label === 'Liên hệ' ? (
+                    <a
+                      href={link.href}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        onOpenContact();
+                      }}
+                    >
+                      {link.label}
+                    </a>
+                  ) : link.label === 'Câu chuyện thương hiệu' ? (
+                    <a
+                      href={link.href}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        onOpenStory();
+                      }}
+                    >
+                      {link.label}
+                    </a>
+                  ) : (
+                    <a href={link.href}>{link.label}</a>
+                  )}
                 </li>
               ))}
             </ul>
@@ -69,7 +99,29 @@ export const FooterMain: React.FC<FooterMainProps> = ({ onSubscribed }) => {
             <ul className="htf-footer__links" data-node-id="511:403">
               {FOOTER_SUPPORT_LINKS.map((link) => (
                 <li key={link.label}>
-                  <a href={link.href}>{link.label}</a>
+                  {link.label === 'Giao hàng & Thanh toán' ? (
+                    <a
+                      href="#tra-cuu"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        onOpenOrderLookup();
+                      }}
+                    >
+                      Tra cứu đơn hàng
+                    </a>
+                  ) : link.label === 'Đổi trả sản phẩm' ? (
+                    <a
+                      href="#lien-he"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        onOpenContact();
+                      }}
+                    >
+                      {link.label}
+                    </a>
+                  ) : (
+                    <a href={link.href}>{link.label}</a>
+                  )}
                 </li>
               ))}
             </ul>
@@ -202,7 +254,10 @@ export const FooterMain: React.FC<FooterMainProps> = ({ onSubscribed }) => {
 
         <div className="htf-footer__bottom">
           <p className="htf-footer__copyright" data-node-id="511:484">
-            © 2026 Hoàng Toàn Farm. All rights reserved. Designed by Vicogroup.vn
+            © 2026 Hoàng Toàn Farm. All rights reserved. Designed by Vicogroup.vn ·{' '}
+            <a href="?admin=1" style={{ textDecoration: 'underline', opacity: 0.9 }}>
+              Quản trị
+            </a>
           </p>
 
           <div className="htf-footer__certs">

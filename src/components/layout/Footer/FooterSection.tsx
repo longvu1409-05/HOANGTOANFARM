@@ -6,6 +6,9 @@ import './Footer.css';
 interface FooterSectionProps {
   onOpenOrderModal: () => void;
   onSubscribed: (email: string) => Promise<void>;
+  onOpenContact: () => void;
+  onOpenOrderLookup: () => void;
+  onOpenStory: () => void;
 }
 
 /**
@@ -14,11 +17,19 @@ interface FooterSectionProps {
 export const FooterSection: React.FC<FooterSectionProps> = ({
   onOpenOrderModal,
   onSubscribed,
+  onOpenContact,
+  onOpenOrderLookup,
+  onOpenStory,
 }) => {
   return (
     <footer className="htf-footer-wrap" id="lien-he">
       <PreFooterBanner onOpenOrderModal={onOpenOrderModal} />
-      <FooterMain onSubscribed={onSubscribed} />
+      <FooterMain
+        onSubscribed={onSubscribed}
+        onOpenContact={onOpenContact}
+        onOpenOrderLookup={onOpenOrderLookup}
+        onOpenStory={onOpenStory}
+      />
     </footer>
   );
 };

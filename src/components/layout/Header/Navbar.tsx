@@ -32,7 +32,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     }
 
     const timer = window.setTimeout(() => {
-      fetchProducts(searchQuery)
+      fetchProducts({ q: searchQuery })
         .then(setSearchResults)
         .catch(() => setSearchResults([]));
     }, 200);

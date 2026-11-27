@@ -2,12 +2,27 @@ import { apiRequest } from './apiClient';
 
 export type OrderStatus = 'pending' | 'confirmed' | 'shipping' | 'completed' | 'cancelled';
 
-export interface CreateOrderPayload {
+export interface OrderLinePayload {
   productId: string;
   quantity: number;
+}
+
+export interface CreateOrderPayload {
+  items: OrderLinePayload[];
   customerName: string;
   customerPhone: string;
+  address?: string;
   note?: string;
+}
+
+export interface OrderItemDto {
+  id: number;
+  order_id: number;
+  product_id: string;
+  product_name: string;
+  unit_price_vnd: number;
+  quantity: number;
+  subtotal_vnd: number;
 }
 
 export interface OrderDto {
@@ -21,10 +36,12 @@ export interface OrderDto {
   totalPriceLabel?: string;
   customer_name: string;
   customer_phone: string;
+  address: string;
   note: string;
   status: OrderStatus;
   created_at: string;
   updated_at: string;
+  items?: OrderItemDto[];
 }
 
 export interface OrderListResponse {
@@ -43,9 +60,14 @@ export async function createOrder(payload: CreateOrderPayload) {
   });
 }
 
-export async function fetchOrders(filters?: { phone?: string; status?: string }) {
+export async function fetchOrders(filters?: {
+  phone?: string;
+  code?: string;
+  status?: string;
+}) {
   const params = new URLSearchParams();
   if (filters?.phone?.trim()) params.set('phone', filters.phone.trim());
+  if (filters?.code?.trim()) params.set('code', filters.code.trim());
   if (filters?.status?.trim()) params.set('status', filters.status.trim());
   const qs = params.toString() ? `?${params.toString()}` : '';
   const res = await apiRequest<OrderListResponse>(`/api/orders${qs}`);

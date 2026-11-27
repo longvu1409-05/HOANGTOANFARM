@@ -6,22 +6,32 @@ import { CroppedImage } from '../../common/CroppedImage';
 interface ProductCardProps {
   product: ProductItem;
   onSelect: (product: ProductItem) => void;
+  onInspect: (product: ProductItem) => void;
 }
 
 /**
  * Thẻ hiển thị 1 sản phẩm (viền kép xanh đậm + ảnh + thông số + giá + nút Đặt quà)
  */
-export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelect }) => {
+export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelect, onInspect }) => {
   return (
     <article className="htf-product-card" data-node-id={product.nodeId}>
       <div className="htf-product-card__outer" />
 
       <div className="htf-product-card__inner">
-        <div className="htf-product-card__img-box">
+        <div
+          className="htf-product-card__img-box htf-product-card__clickable"
+          onClick={() => onInspect(product)}
+          title="Xem chi tiết sản phẩm"
+        >
           <CroppedImage src={product.image} alt={product.name} crop={product.imageCrop} />
         </div>
 
-        <h3 className="htf-product-card__title htf-green-grad-text">{product.name}</h3>
+        <h3
+          className="htf-product-card__title htf-green-grad-text htf-product-card__clickable"
+          onClick={() => onInspect(product)}
+        >
+          {product.name}
+        </h3>
 
         <ul className="htf-product-card__specs">
           <li>

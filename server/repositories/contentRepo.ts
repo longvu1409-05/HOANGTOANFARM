@@ -1,5 +1,6 @@
 import { getDatabase } from '../db/database.js';
 import { KnowledgeArticleRecord, ReviewRecord } from '../types/backend.types.js';
+import { slugifyVietnamese } from '../utils/formatters.js';
 
 /**
  * Truy vấn bài viết kiến thức & đánh giá khách hàng
@@ -25,5 +26,33 @@ export const contentRepo = {
     return db
       .prepare('SELECT * FROM knowledge_articles ORDER BY is_featured DESC, rowid ASC')
       .all() as unknown as KnowledgeArticleRecord[];
+  },
+
+  getKnowledgeArticleById(id: string): KnowledgeArticleRecord | undefined {
+    const db = getDatabase();
+    return db
+      .prepare('SELECT * FROM knowledge_articles WHERE id = ?')
+      .get(id) as unknown as KnowledgeArticleRecord | undefined;
+  },
+
+  createKnowledgeArticle(params: {
+    title: string;
+    excerpt: string;
+    content: string;
+    imageFile?: string;
+  }): KnowledgeArticleRecord {
+    const db = getDatabase();
+    const id = slugifyVietnamese(params.title);
+    db.prepare(
+      `INSERT INTO knowledge_articles (id, title, excerpt, content, image_file, is_featured)
+       VALUES (?, ?, ?, ?, ?, 0)`
+    ).run(
+      id,
+      params.title,
+      params.excerpt,
+      params.content,
+      params.imageFile || 'imgRectangle222.png'
+    );
+    return this.getKnowledgeArticleById(id)!;
   },
 };
