@@ -5,15 +5,17 @@ import { sendBadRequest, sendCreated, sendNotFound, sendOk } from '../utils/resp
 import { validateProductInput } from '../utils/validators';
 
 function resolveImageUrl(imageFile: string): string {
-  if (imageFile.startsWith('http://') || imageFile.startsWith('https://') || imageFile.startsWith('./') || imageFile.startsWith('/')) {
+  if (
+    imageFile.startsWith('http://') ||
+    imageFile.startsWith('https://') ||
+    imageFile.startsWith('./') ||
+    imageFile.startsWith('/')
+  ) {
     return imageFile;
   }
   return `./assets/figma/${imageFile}`;
 }
 
-/**
- * Chuyển bản ghi SQLite sang JSON chuẩn cho Frontend
- */
 function toProductDto(row: ProductRecord) {
   return {
     id: row.id,
@@ -35,50 +37,50 @@ function toProductDto(row: ProductRecord) {
 }
 
 export const productController = {
-  list(req: Request, res: Response) {
+  async list(req: Request, res: Response) {
     const q = typeof req.query.q === 'string' ? req.query.q : undefined;
     const category = typeof req.query.category === 'string' ? req.query.category : undefined;
     const featuredOnly = req.query.featured === '1';
 
-    const rows = productRepo.findAll({ q, category, featuredOnly });
+    const rows = await productRepo.findAll({ q, category, featuredOnly });
     return sendOk(res, rows.map(toProductDto));
   },
 
-  getById(req: Request, res: Response) {
-    const row = productRepo.findById(String(req.params.id));
+  async getById(req: Request, res: Response) {
+    const row = await productRepo.findById(String(req.params.id));
     if (!row) {
       return sendNotFound(res, 'Không tìm thấy sản phẩm.');
     }
     return sendOk(res, toProductDto(row));
   },
 
-  create(req: Request, res: Response) {
+  async create(req: Request, res: Response) {
     const { error, value } = validateProductInput((req.body ?? {}) as Record<string, unknown>);
     if (error || !value) {
       return sendBadRequest(res, error ?? 'Thông tin sản phẩm không hợp lệ.');
     }
 
-    const created = productRepo.create(value);
+    const created = await productRepo.create(value);
     return sendCreated(res, toProductDto(created), `Đã thêm sản phẩm "${created.name}".`);
   },
 
-  update(req: Request, res: Response) {
+  async update(req: Request, res: Response) {
     const id = String(req.params.id);
     const { error, value } = validateProductInput((req.body ?? {}) as Record<string, unknown>);
     if (error || !value) {
       return sendBadRequest(res, error ?? 'Thông tin cập nhật không hợp lệ.');
     }
 
-    const updated = productRepo.update(id, value);
+    const updated = await productRepo.update(id, value);
     if (!updated) {
       return sendNotFound(res, 'Không tìm thấy sản phẩm cần cập nhật.');
     }
     return sendOk(res, toProductDto(updated), `Đã cập nhật sản phẩm "${updated.name}".`);
   },
 
-  remove(req: Request, res: Response) {
+  async remove(req: Request, res: Response) {
     const id = String(req.params.id);
-    const result = productRepo.remove(id);
+    const result = await productRepo.remove(id);
     if (!result.deleted) {
       return sendNotFound(res, 'Không tìm thấy sản phẩm cần xóa.');
     }

@@ -1,5 +1,6 @@
 import { getSqliteDb } from '../db/database';
 import { getJsonStore, nowTimestamp, saveJsonStore } from '../db/jsonStore';
+import { getSupabaseClient } from '../db/supabaseClient';
 import { CreateProductInput, ProductRecord } from '../types/backend.types';
 import { formatVnd, slugifyVietnamese } from '../utils/formatters';
 
@@ -10,11 +11,58 @@ interface ProductFilters {
   includeInactive?: boolean;
 }
 
+function normalizeProductRow(row: Record<string, unknown>): ProductRecord {
+  return {
+    id: String(row.id),
+    node_id: String(row.node_id ?? ''),
+    name: String(row.name),
+    category: String(row.category ?? 'Trái cây tươi'),
+    description: String(row.description ?? ''),
+    spec_1: String(row.spec_1),
+    spec_2: String(row.spec_2),
+    unit: String(row.unit),
+    price_vnd: Number(row.price_vnd),
+    price_label: String(row.price_label),
+    image_file: String(row.image_file),
+    crop_json: row.crop_json ? String(row.crop_json) : null,
+    stock: Number(row.stock ?? 0),
+    is_featured: Number(row.is_featured ?? 0),
+    is_active: Number(row.is_active ?? 1),
+    created_at: String(row.created_at ?? ''),
+  };
+}
+
 /**
- * Truy vấn và thao tác CRUD trên bảng products (hỗ trợ SQLite + JSON fallback)
+ * Truy vấn & CRUD bảng products (Ưu tiên Supabase -> SQLite -> JSON fallback)
  */
 export const productRepo = {
-  findAll(filters?: ProductFilters): ProductRecord[] {
+  async findAll(filters?: ProductFilters): Promise<ProductRecord[]> {
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      let query = supabase
+        .from('products')
+        .select('*')
+        .order('is_featured', { ascending: false })
+        .order('created_at', { ascending: true });
+
+      if (!filters?.includeInactive) query = query.eq('is_active', 1);
+      if (filters?.featuredOnly) query = query.eq('is_featured', 1);
+      if (filters?.category && filters.category !== 'Tất cả') {
+        query = query.eq('category', filters.category);
+      }
+
+      const kw = filters?.q?.trim().replace(/[%_,()]/g, '');
+      if (kw) {
+        query = query.or(
+          `name.ilike.%${kw}%,description.ilike.%${kw}%,spec_1.ilike.%${kw}%,spec_2.ilike.%${kw}%,unit.ilike.%${kw}%`
+        );
+      }
+
+      const { data, error } = await query;
+      if (error) throw new Error(`Lỗi truy vấn sản phẩm Supabase: ${error.message}`);
+      return (data ?? []).map((r) => normalizeProductRow(r as Record<string, unknown>));
+    }
+
     const db = getSqliteDb();
     if (db) {
       const conditions: string[] = [];
@@ -60,7 +108,19 @@ export const productRepo = {
       .sort((a, b) => b.is_featured - a.is_featured);
   },
 
-  findById(id: string): ProductRecord | undefined {
+  async findById(id: string): Promise<ProductRecord | undefined> {
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('id', id)
+        .eq('is_active', 1)
+        .maybeSingle();
+      if (error) throw new Error(`Lỗi đọc sản phẩm Supabase: ${error.message}`);
+      return data ? normalizeProductRow(data as Record<string, unknown>) : undefined;
+    }
+
     const db = getSqliteDb();
     if (db) {
       return db
@@ -71,11 +131,38 @@ export const productRepo = {
     return getJsonStore().products.find((p) => p.id === id && p.is_active === 1);
   },
 
-  create(input: CreateProductInput): ProductRecord {
+  async create(input: CreateProductInput): Promise<ProductRecord> {
     const id = input.id || slugifyVietnamese(input.name);
     const priceLabel = formatVnd(input.priceVnd);
-    const db = getSqliteDb();
 
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      const { data, error } = await supabase
+        .from('products')
+        .insert({
+          id,
+          node_id: `custom:${id}`,
+          name: input.name,
+          category: input.category,
+          description: input.description,
+          spec_1: input.spec1,
+          spec_2: input.spec2,
+          unit: input.unit,
+          price_vnd: input.priceVnd,
+          price_label: priceLabel,
+          image_file: input.imageFile,
+          crop_json: null,
+          stock: input.stock,
+          is_featured: input.isFeatured ? 1 : 0,
+          is_active: 1,
+        })
+        .select('*')
+        .single();
+      if (error) throw new Error(`Không thể tạo sản phẩm trên Supabase: ${error.message}`);
+      return normalizeProductRow(data as Record<string, unknown>);
+    }
+
+    const db = getSqliteDb();
     if (db) {
       db.prepare(
         `INSERT INTO products (
@@ -126,10 +213,35 @@ export const productRepo = {
     return record;
   },
 
-  update(id: string, input: CreateProductInput): ProductRecord | undefined {
+  async update(id: string, input: CreateProductInput): Promise<ProductRecord | undefined> {
     const priceLabel = formatVnd(input.priceVnd);
-    const db = getSqliteDb();
 
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      const { data, error } = await supabase
+        .from('products')
+        .update({
+          name: input.name,
+          category: input.category,
+          description: input.description,
+          spec_1: input.spec1,
+          spec_2: input.spec2,
+          unit: input.unit,
+          price_vnd: input.priceVnd,
+          price_label: priceLabel,
+          image_file: input.imageFile,
+          stock: input.stock,
+          is_featured: input.isFeatured ? 1 : 0,
+          is_active: 1,
+        })
+        .eq('id', id)
+        .select('*')
+        .maybeSingle();
+      if (error) throw new Error(`Không thể cập nhật sản phẩm trên Supabase: ${error.message}`);
+      return data ? normalizeProductRow(data as Record<string, unknown>) : undefined;
+    }
+
+    const db = getSqliteDb();
     if (db) {
       const existing = db.prepare('SELECT * FROM products WHERE id = ?').get(id);
       if (!existing) return undefined;
@@ -179,7 +291,32 @@ export const productRepo = {
     return target;
   },
 
-  remove(id: string): { deleted: boolean; softDeleted: boolean } {
+  async remove(id: string): Promise<{ deleted: boolean; softDeleted: boolean }> {
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      const [{ count: refOrders }, { count: refItems }] = await Promise.all([
+        supabase.from('orders').select('*', { count: 'exact', head: true }).eq('product_id', id),
+        supabase
+          .from('order_items')
+          .select('*', { count: 'exact', head: true })
+          .eq('product_id', id),
+      ]);
+
+      if ((refOrders ?? 0) > 0 || ((refItems ?? 0) > 0)) {
+        const { data, error } = await supabase
+          .from('products')
+          .update({ is_active: 0 })
+          .eq('id', id)
+          .select('id');
+        if (error) throw new Error(`Lỗi ẩn sản phẩm trên Supabase: ${error.message}`);
+        return { deleted: (data?.length ?? 0) > 0, softDeleted: true };
+      }
+
+      const { data, error } = await supabase.from('products').delete().eq('id', id).select('id');
+      if (error) throw new Error(`Lỗi xóa sản phẩm trên Supabase: ${error.message}`);
+      return { deleted: (data?.length ?? 0) > 0, softDeleted: false };
+    }
+
     const db = getSqliteDb();
     if (db) {
       const refOrder = db

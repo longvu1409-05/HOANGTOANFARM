@@ -4,13 +4,13 @@ import { sendBadRequest, sendCreated, sendOk } from '../utils/response';
 import { isValidEmail } from '../utils/validators';
 
 export const newsletterController = {
-  subscribe(req: Request, res: Response) {
+  async subscribe(req: Request, res: Response) {
     const rawEmail = String(req.body?.email ?? '').trim();
     if (!isValidEmail(rawEmail)) {
       return sendBadRequest(res, 'Địa chỉ email không hợp lệ.');
     }
 
-    const existing = newsletterRepo.findByEmail(rawEmail);
+    const existing = await newsletterRepo.findByEmail(rawEmail);
     if (existing) {
       return sendOk(
         res,
@@ -19,7 +19,7 @@ export const newsletterController = {
       );
     }
 
-    const created = newsletterRepo.create(rawEmail);
+    const created = await newsletterRepo.create(rawEmail);
     return sendCreated(
       res,
       { subscriber: created, alreadySubscribed: false },
@@ -27,8 +27,8 @@ export const newsletterController = {
     );
   },
 
-  list(_req: Request, res: Response) {
-    const subscribers = newsletterRepo.findAll();
+  async list(_req: Request, res: Response) {
+    const subscribers = await newsletterRepo.findAll();
     return sendOk(res, subscribers);
   },
 };

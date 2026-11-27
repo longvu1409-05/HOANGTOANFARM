@@ -3,12 +3,12 @@ import { contentRepo } from '../repositories/contentRepo';
 import { sendBadRequest, sendCreated, sendNotFound, sendOk } from '../utils/response';
 
 export const contentController = {
-  listReviews(_req: Request, res: Response) {
-    const reviews = contentRepo.getAllReviews();
+  async listReviews(_req: Request, res: Response) {
+    const reviews = await contentRepo.getAllReviews();
     return sendOk(res, reviews);
   },
 
-  createReview(req: Request, res: Response) {
+  async createReview(req: Request, res: Response) {
     const author = String(req.body?.author ?? '').trim();
     const quote = String(req.body?.quote ?? '').trim();
     const rating = Number(req.body?.rating ?? 5);
@@ -20,24 +20,24 @@ export const contentController = {
       return sendBadRequest(res, 'Số sao đánh giá phải từ 1 đến 5.');
     }
 
-    const created = contentRepo.createReview(author, quote, rating);
+    const created = await contentRepo.createReview(author, quote, rating);
     return sendCreated(res, created, 'Cảm ơn bạn đã gửi đánh giá cho Hoàng Toàn Farm!');
   },
 
-  listKnowledge(_req: Request, res: Response) {
-    const articles = contentRepo.getAllKnowledgeArticles();
+  async listKnowledge(_req: Request, res: Response) {
+    const articles = await contentRepo.getAllKnowledgeArticles();
     return sendOk(res, articles);
   },
 
-  getKnowledgeById(req: Request, res: Response) {
-    const article = contentRepo.getKnowledgeArticleById(String(req.params.id));
+  async getKnowledgeById(req: Request, res: Response) {
+    const article = await contentRepo.getKnowledgeArticleById(String(req.params.id));
     if (!article) {
       return sendNotFound(res, 'Không tìm thấy bài viết kiến thức.');
     }
     return sendOk(res, article);
   },
 
-  createKnowledge(req: Request, res: Response) {
+  async createKnowledge(req: Request, res: Response) {
     const title = String(req.body?.title ?? '').trim();
     const excerpt = String(req.body?.excerpt ?? '').trim();
     const content = String(req.body?.content ?? '').trim();
@@ -47,7 +47,7 @@ export const contentController = {
       return sendBadRequest(res, 'Vui lòng nhập đầy đủ tiêu đề, tóm tắt và nội dung bài viết.');
     }
 
-    const created = contentRepo.createKnowledgeArticle({
+    const created = await contentRepo.createKnowledgeArticle({
       title,
       excerpt,
       content,

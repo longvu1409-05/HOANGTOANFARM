@@ -1,5 +1,6 @@
 import { getSqliteDb } from '../db/database';
 import { getJsonStore, nowTimestamp, saveJsonStore } from '../db/jsonStore';
+import { getSupabaseClient } from '../db/supabaseClient';
 import { OrderItemRecord, OrderRecord, OrderStatus } from '../types/backend.types';
 
 interface ResolvedOrderLine {
@@ -20,17 +21,118 @@ interface InsertOrderParams {
   note: string;
 }
 
+function normalizeOrderItem(row: Record<string, unknown>): OrderItemRecord {
+  return {
+    id: Number(row.id),
+    order_id: Number(row.order_id),
+    product_id: String(row.product_id),
+    product_name: String(row.product_name),
+    unit_price_vnd: Number(row.unit_price_vnd),
+    quantity: Number(row.quantity),
+    subtotal_vnd: Number(row.subtotal_vnd),
+  };
+}
+
+function normalizeOrderRow(row: Record<string, unknown>): OrderRecord {
+  const rawItems = Array.isArray(row.items) ? row.items : [];
+  return {
+    id: Number(row.id),
+    order_code: String(row.order_code),
+    product_id: String(row.product_id),
+    product_name: String(row.product_name),
+    unit_price_vnd: Number(row.unit_price_vnd),
+    quantity: Number(row.quantity),
+    total_price_vnd: Number(row.total_price_vnd),
+    customer_name: String(row.customer_name),
+    customer_phone: String(row.customer_phone),
+    address: String(row.address ?? ''),
+    note: String(row.note ?? ''),
+    status: String(row.status ?? 'pending') as OrderStatus,
+    created_at: String(row.created_at ?? ''),
+    updated_at: String(row.updated_at ?? ''),
+    items: rawItems.map((it) => normalizeOrderItem(it as Record<string, unknown>)),
+  };
+}
+
 /**
- * Truy vấn và cập nhật đơn hàng (hỗ trợ SQLite + JSON fallback)
+ * Truy vấn và cập nhật đơn hàng (Ưu tiên Supabase -> SQLite -> JSON fallback)
  */
 export const orderRepo = {
-  create(params: InsertOrderParams): OrderRecord {
+  async create(params: InsertOrderParams): Promise<OrderRecord> {
     const first = params.lines[0];
     const totalQty = params.lines.reduce((sum, l) => sum + l.quantity, 0);
     const summaryName =
       params.lines.length === 1
         ? first.productName
         : `${first.productName} (+${params.lines.length - 1} sản phẩm khác)`;
+
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      // 1. Trừ tồn kho an toàn trên từng sản phẩm
+      for (const line of params.lines) {
+        const { data: prod, error: prodErr } = await supabase
+          .from('products')
+          .select('id, stock')
+          .eq('id', line.productId)
+          .single();
+        if (prodErr || !prod || Number(prod.stock) < line.quantity) {
+          throw new Error(`Sản phẩm "${line.productName}" không đủ số lượng trong kho.`);
+        }
+        await supabase
+          .from('products')
+          .update({ stock: Number(prod.stock) - line.quantity })
+          .eq('id', line.productId);
+      }
+
+      // 2. Tạo bản ghi đơn hàng chính
+      const { data: orderData, error: orderErr } = await supabase
+        .from('orders')
+        .insert({
+          order_code: params.orderCode,
+          product_id: first.productId,
+          product_name: summaryName,
+          unit_price_vnd: first.unitPriceVnd,
+          quantity: totalQty,
+          total_price_vnd: params.totalPriceVnd,
+          customer_name: params.customerName,
+          customer_phone: params.customerPhone,
+          address: params.address,
+          note: params.note,
+          status: 'pending',
+        })
+        .select('*')
+        .single();
+
+      if (orderErr || !orderData) {
+        throw new Error(`Không thể lưu đơn hàng lên Supabase: ${orderErr?.message ?? ''}`);
+      }
+
+      const orderId = Number(orderData.id);
+
+      // 3. Thêm danh sách món (batch insert 1 lần tránh N+1)
+      const { data: itemRows, error: itemErr } = await supabase
+        .from('order_items')
+        .insert(
+          params.lines.map((line) => ({
+            order_id: orderId,
+            product_id: line.productId,
+            product_name: line.productName,
+            unit_price_vnd: line.unitPriceVnd,
+            quantity: line.quantity,
+            subtotal_vnd: line.subtotalVnd,
+          }))
+        )
+        .select('*');
+
+      if (itemErr) {
+        throw new Error(`Lỗi lưu chi tiết đơn hàng Supabase: ${itemErr.message}`);
+      }
+
+      return normalizeOrderRow({
+        ...(orderData as Record<string, unknown>),
+        items: itemRows ?? [],
+      });
+    }
 
     const db = getSqliteDb();
     if (db) {
@@ -81,7 +183,7 @@ export const orderRepo = {
         }
 
         db.exec('COMMIT;');
-        return this.findById(orderId)!;
+        return (await this.findById(orderId))!;
       } catch (err) {
         db.exec('ROLLBACK;');
         throw err;
@@ -134,7 +236,29 @@ export const orderRepo = {
     return order;
   },
 
-  findAll(filters?: { phone?: string; code?: string; status?: string }): OrderRecord[] {
+  async findAll(filters?: { phone?: string; code?: string; status?: string }): Promise<OrderRecord[]> {
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      let query = supabase
+        .from('orders')
+        .select('*, items:order_items(*)')
+        .order('id', { ascending: false });
+
+      if (filters?.phone?.trim()) {
+        query = query.ilike('customer_phone', `%${filters.phone.trim()}%`);
+      }
+      if (filters?.code?.trim()) {
+        query = query.ilike('order_code', filters.code.trim());
+      }
+      if (filters?.status?.trim()) {
+        query = query.eq('status', filters.status.trim());
+      }
+
+      const { data, error } = await query;
+      if (error) throw new Error(`Lỗi đọc danh sách đơn hàng Supabase: ${error.message}`);
+      return (data ?? []).map((row) => normalizeOrderRow(row as Record<string, unknown>));
+    }
+
     const db = getSqliteDb();
     if (db) {
       const conditions: string[] = [];
@@ -178,7 +302,18 @@ export const orderRepo = {
     });
   },
 
-  findById(id: number): OrderRecord | undefined {
+  async findById(id: number): Promise<OrderRecord | undefined> {
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*, items:order_items(*)')
+        .eq('id', id)
+        .maybeSingle();
+      if (error) throw new Error(`Lỗi tìm đơn hàng Supabase: ${error.message}`);
+      return data ? normalizeOrderRow(data as Record<string, unknown>) : undefined;
+    }
+
     const db = getSqliteDb();
     if (db) {
       const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(id) as unknown as
@@ -195,10 +330,39 @@ export const orderRepo = {
     return getJsonStore().orders.find((o) => o.id === id);
   },
 
-  updateStatus(id: number, nextStatus: OrderStatus): OrderRecord | undefined {
+  async updateStatus(id: number, nextStatus: OrderStatus): Promise<OrderRecord | undefined> {
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      const current = await this.findById(id);
+      if (!current) return undefined;
+
+      if (current.status !== 'cancelled' && nextStatus === 'cancelled' && current.items) {
+        for (const item of current.items) {
+          const { data: prod } = await supabase
+            .from('products')
+            .select('stock')
+            .eq('id', item.product_id)
+            .maybeSingle();
+          if (prod) {
+            await supabase
+              .from('products')
+              .update({ stock: Number(prod.stock) + item.quantity })
+              .eq('id', item.product_id);
+          }
+        }
+      }
+
+      const { error } = await supabase
+        .from('orders')
+        .update({ status: nextStatus, updated_at: new Date().toISOString() })
+        .eq('id', id);
+      if (error) throw new Error(`Không thể cập nhật trạng thái đơn hàng: ${error.message}`);
+      return this.findById(id);
+    }
+
     const db = getSqliteDb();
     if (db) {
-      const current = this.findById(id);
+      const current = await this.findById(id);
       if (!current) return undefined;
 
       db.exec('BEGIN IMMEDIATE;');
@@ -238,7 +402,21 @@ export const orderRepo = {
     return order;
   },
 
-  getSummary() {
+  async getSummary() {
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      const { data, error } = await supabase.from('orders').select('status, total_price_vnd');
+      if (error) throw new Error(`Lỗi thống kê đơn hàng Supabase: ${error.message}`);
+      const rows = data ?? [];
+      return {
+        totalOrders: rows.length,
+        totalRevenueVnd: rows
+          .filter((r) => r.status !== 'cancelled')
+          .reduce((sum, r) => sum + Number(r.total_price_vnd ?? 0), 0),
+        pendingOrders: rows.filter((r) => r.status === 'pending').length,
+      };
+    }
+
     const db = getSqliteDb();
     if (db) {
       return db

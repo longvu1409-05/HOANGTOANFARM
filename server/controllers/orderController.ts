@@ -7,7 +7,7 @@ import { sendBadRequest, sendCreated, sendNotFound, sendOk } from '../utils/resp
 import { ALLOWED_ORDER_STATUSES, validateCreateOrder } from '../utils/validators';
 
 export const orderController = {
-  create(req: Request, res: Response) {
+  async create(req: Request, res: Response) {
     const { error, value } = validateCreateOrder((req.body ?? {}) as Record<string, unknown>);
     if (error || !value) {
       return sendBadRequest(res, error ?? 'Dữ liệu đơn hàng không hợp lệ.');
@@ -17,7 +17,7 @@ export const orderController = {
     let totalPriceVnd = 0;
 
     for (const item of value.items) {
-      const product = productRepo.findById(item.productId);
+      const product = await productRepo.findById(item.productId);
       if (!product) {
         return sendNotFound(res, `Sản phẩm "${item.productId}" không tồn tại hoặc đã ngừng bán.`);
       }
@@ -40,7 +40,7 @@ export const orderController = {
     }
 
     try {
-      const order = orderRepo.create({
+      const order = await orderRepo.create({
         orderCode: generateOrderCode(),
         lines,
         totalPriceVnd,
@@ -66,13 +66,15 @@ export const orderController = {
     }
   },
 
-  list(req: Request, res: Response) {
+  async list(req: Request, res: Response) {
     const phone = typeof req.query.phone === 'string' ? req.query.phone : undefined;
     const code = typeof req.query.code === 'string' ? req.query.code : undefined;
     const status = typeof req.query.status === 'string' ? req.query.status : undefined;
 
-    const orders = orderRepo.findAll({ phone, code, status });
-    const summary = orderRepo.getSummary();
+    const [orders, summary] = await Promise.all([
+      orderRepo.findAll({ phone, code, status }),
+      orderRepo.getSummary(),
+    ]);
 
     return sendOk(res, {
       summary,
@@ -80,7 +82,7 @@ export const orderController = {
     });
   },
 
-  updateStatus(req: Request, res: Response) {
+  async updateStatus(req: Request, res: Response) {
     const id = Number(req.params.id);
     if (!Number.isInteger(id) || id <= 0) {
       return sendBadRequest(res, 'ID đơn hàng không hợp lệ.');
@@ -94,12 +96,12 @@ export const orderController = {
       );
     }
 
-    const existing = orderRepo.findById(id);
+    const existing = await orderRepo.findById(id);
     if (!existing) {
       return sendNotFound(res, 'Không tìm thấy đơn hàng.');
     }
 
-    const updated = orderRepo.updateStatus(id, status);
+    const updated = await orderRepo.updateStatus(id, status);
     return sendOk(res, updated, `Đã cập nhật trạng thái đơn ${existing.order_code}.`);
   },
 };

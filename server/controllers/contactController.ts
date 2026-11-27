@@ -5,7 +5,7 @@ import { sendBadRequest, sendCreated, sendNotFound, sendOk } from '../utils/resp
 import { isValidEmail, isValidPhone, normalizePhone } from '../utils/validators';
 
 export const contactController = {
-  create(req: Request, res: Response) {
+  async create(req: Request, res: Response) {
     const fullName = String(req.body?.fullName ?? '').trim();
     const rawPhone = String(req.body?.phone ?? '').trim();
     const email = String(req.body?.email ?? '').trim();
@@ -25,7 +25,7 @@ export const contactController = {
       return sendBadRequest(res, 'Nội dung cần tư vấn phải có ít nhất 5 ký tự.');
     }
 
-    const created = contactRepo.create({
+    const created = await contactRepo.create({
       fullName,
       phone: normalizePhone(rawPhone),
       email,
@@ -40,11 +40,11 @@ export const contactController = {
     );
   },
 
-  list(_req: Request, res: Response) {
-    return sendOk(res, contactRepo.findAll());
+  async list(_req: Request, res: Response) {
+    return sendOk(res, await contactRepo.findAll());
   },
 
-  updateStatus(req: Request, res: Response) {
+  async updateStatus(req: Request, res: Response) {
     const id = Number(req.params.id);
     const status = String(req.body?.status ?? '') as ContactStatus;
     if (!Number.isInteger(id) || id <= 0) {
@@ -54,7 +54,7 @@ export const contactController = {
       return sendBadRequest(res, 'Trạng thái phải là "new" hoặc "replied".');
     }
 
-    const updated = contactRepo.updateStatus(id, status);
+    const updated = await contactRepo.updateStatus(id, status);
     if (!updated) {
       return sendNotFound(res, 'Không tìm thấy yêu cầu liên hệ.');
     }

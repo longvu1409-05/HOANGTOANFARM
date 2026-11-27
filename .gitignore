@@ -1,15 +1,21 @@
 # Dependencies
 node_modules/
 
+# Environment variables (KHÔNG ĐẨY KHÓA BÍ MẬT LÊN GITHUB)
+.env
+.env.*
+!.env.example
+
 # Build output
 dist/
 dist-ssr/
 *.local
 *.tsbuildinfo
 
-# Local SQLite database files
+# Local database files
 server/data/*.sqlite
 server/data/*.sqlite-*
+server/data/*.json
 
 # Logs
 npm-debug.log*
